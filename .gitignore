@@ -1,0 +1,14 @@
+# .NET
+bin/
+obj/
+*.user
+.vs/
+.idea/
+TestResults/
+
+# 手元のゲームの導入先（CraftTodo/Game.local.props.example を写して作る）
+Game.local.props
+
+# ゲームを逆コンパイルした結果・参照用に落とした他の mod（コミットしない）
+decompiled/
+reference/

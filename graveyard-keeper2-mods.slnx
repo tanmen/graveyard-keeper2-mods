@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/CraftTodo/">
+    <Project Path="CraftTodo/CraftTodo.Core/CraftTodo.Core.csproj" />
+    <Project Path="CraftTodo/CraftTodo.Core.Tests/CraftTodo.Core.Tests.csproj" />
+    <Project Path="CraftTodo/CraftTodo/CraftTodo.csproj" />
+  </Folder>
+</Solution>
