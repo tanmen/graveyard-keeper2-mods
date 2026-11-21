@@ -26,7 +26,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>CraftTodo</AssemblyName>
     <RootNamespace>CraftTodo</RootNamespace>
-    <Version>0.7.4</Version>
+    <Version>0.7.5</Version>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- ゲームの DLL の版の不一致（Unity の依存）で出る警告は止めない程度に抑える -->
     <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>

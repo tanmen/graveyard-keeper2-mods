@@ -384,7 +384,12 @@ namespace CraftTodo
             return item != null ? item.GetHeader() : LLBase.L(craft.id);
         }
 
-        /// <summary>素材がレシピの主な出力（か、その品質の違い）か。</summary>
+        /// <summary>
+        /// 素材がレシピの主な出力（か、そのスターの品質の違い）か。品質の違いは、主な出力と同じスターの品のまとまり
+        /// （GameBalance.starGroupItemsCache）に入っている品。ゲームの GetPossibleResultingItemDefs はレシピの出力を全部並べる
+        /// （伐採屋のゾンビの作業なら丸太と木の棒）ので、そこに入っているかでは見ない（0.7.3〜0.7.4 はそれで木の棒を丸太の品質の
+        /// 違いと読み、効果を丸太で組み立てていた。在庫を足す mod の Stock Finder はその品を数えるので、丸太の数が出ていた）。
+        /// </summary>
         private static bool IsMainOutput(CraftDef craft, ItemDef item)
         {
             ItemDef result = craft.TryGetResultingItemDef(false);
@@ -398,8 +403,20 @@ namespace CraftTodo
                 return true;
             }
 
-            List<ItemDef> variants = craft.GetPossibleResultingItemDefs(false);
-            return variants != null && variants.Exists(v => v != null && v.id == item.id);
+            if (result.qualityType != ItemDef.QualityType.Star || item.qualityType != ItemDef.QualityType.Star)
+            {
+                return false;
+            }
+
+            foreach (List<ItemDef> group in GameBalance.Me.starGroupItemsCache.Values)
+            {
+                if (group != null && group.Exists(i => i != null && i.id == result.id) && group.Exists(i => i != null && i.id == item.id))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>見出しの技能と習熟を取る台: 置いてある台のうち作業者の付いた最初のもの、無ければ最初の台（置いていなければ null）。</summary>
