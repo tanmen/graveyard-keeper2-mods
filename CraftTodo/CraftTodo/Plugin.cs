@@ -71,8 +71,11 @@ namespace CraftTodo
 
         private void Update()
         {
-            storage.Tick(GameBridge.CurrentSlotName());
+            storage.Tick();
         }
+
+        /// <summary>ゲームが保存に成功した（SaveSystem.Save。ふつうは寝て起きたとき）。その時点のメモを残す。</summary>
+        internal void OnGameSaved(SaveSlotData slot, GameSave save) => storage.OnGameSaved(slot, save);
 
         /// <summary>
         /// 作れなかったときに自動で足す（設定 AddOnBlockedClick / AddWhenCraftWindowOpens）。

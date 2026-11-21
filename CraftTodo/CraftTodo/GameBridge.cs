@@ -37,6 +37,46 @@ namespace CraftTodo
             }
         }
 
+        /// <summary>
+        /// 遊んでいるセーブ（GameSave。ロード・新しいゲームのたびに別のものになる。メモリのキャッシュから読んでも作り直す）と、その枠。
+        /// メニューやロード中は false。新しいゲームの枠は保存の日時（saveDateTime）が空。
+        /// </summary>
+        public static bool TryGetSession(out GameSave save, out SaveSlotData slot)
+        {
+            save = null;
+            slot = null;
+            try
+            {
+                MainGame game = MainGame.Instance;
+                if (game == null || MainGame.PlayerData == null || game.GameSave == null || game.SaveSlotData == null)
+                {
+                    return false;
+                }
+
+                save = game.GameSave;
+                slot = game.SaveSlotData;
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>その GameSave が、いま遊んでいるセーブか（ゲームが枠を写すときの保存を除くため）。</summary>
+        public static bool IsCurrentSave(GameSave save)
+        {
+            try
+            {
+                MainGame game = MainGame.Instance;
+                return game != null && save != null && ReferenceEquals(game.GameSave, save);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public static string CurrentLang()
         {
             try

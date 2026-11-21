@@ -87,6 +87,26 @@ namespace CraftTodo
         }
     }
 
+    /// <summary>
+    /// ゲームの保存（SaveSystem.Save。ゲームが呼ぶのは寝て起きたときと、枠の写しのとき）。保存に成功した呼び返しの前に、
+    /// その時点の製作メモを残す（TodoStorage）。呼び返しを包むので、保存の中身には触らない。
+    /// 枠の名前は保存の中で付け替わる（バックアップの枠から保存すると新しい枠になる）ので、成功の時点の名前と日時で残す。
+    /// </summary>
+    [HarmonyPatch(typeof(SaveSystem), nameof(SaveSystem.Save),
+        new[] { typeof(SaveSlotData), typeof(GameSave), typeof(Action), typeof(Action), typeof(bool), typeof(Action<SaveSlotData, GameSave>) })]
+    internal static class GameSavedPatch
+    {
+        private static void Prefix(SaveSlotData slotData, GameSave gameSave, ref Action callbackSuccessful)
+        {
+            Action original = callbackSuccessful;
+            callbackSuccessful = () =>
+            {
+                Hooks.Guard("ゲームの保存に合わせた製作メモの保存", () => Plugin.Instance.OnGameSaved(slotData, gameSave));
+                original?.Invoke();
+            };
+        }
+    }
+
     internal static class Hooks
     {
         private static readonly HashSet<int> HookedButtons = new HashSet<int>();

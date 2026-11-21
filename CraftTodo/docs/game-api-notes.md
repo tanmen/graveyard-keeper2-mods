@@ -236,5 +236,18 @@ MonoScript は別の bundle にあるので、Image は型の木のキー（`m_S
 ## ゲームの状態
 
 - `MainGame.Instance`、`MainGame.PlayerData`、`MainGame.WorldData`
-- セーブ枠: `MainGame.Instance.SaveSlotData.slotName`（`Steam_1` など。ファイルは `Steam_1.dat`）。`ContinueGame` で設定される
+- セーブ枠: `MainGame.Instance.SaveSlotData.slotName`（`Steam_1` など。ファイルは `Steam_1.dat` と `.info`）。`ContinueGame` と新しいゲーム
+  （`StartNewGameWithSlotName`。保存の日時 `saveDateTime` は空）で設定される
+- **セーブの流れ（2026-11-21 に読んだ。制作メニューの 0.6.1 はメモをこれに合わせる: `TodoStorage`）**:
+  - ゲームが保存するのは `EnergySystem.StopSleeping`（寝て起きたとき。`sleepWithoutSavingGame` なら保存しない）の
+    `SaveSystem.Save(MainGame.Instance.SaveSlotData, MainGame.Instance.GameSave)` と、枠の写し（別の GameSave）だけ。終了時には保存しない
+  - `Save` は同期で、`RedirectSaveFromBackupSlot`（バックアップの枠からの保存は、元の枠があれば `GetNameForNewSlot` の新しい枠へ）→
+    `PrepareToSave`（`saveDateTime = DateTime.Now.ToString(CurrentCulture)`・`day` など）→ 書き込み → 成功なら `callbackSuccessful`。
+    枠の名前と日時はこの中で `SaveSlotData` の上で書き換わる
+  - バックアップは書き込みのたびにファイル名を回す（`_backup_3` を消し、2→3・1→2・本体→1。`JsonFileSerializer` など）。中の
+    `saveDateTime` はそのまま。`SaveSystem.GetRootSlotName("Steam_1_backup_2")` が `Steam_1`
+  - 新しいゲームの枠の名前は、まだ使っていない最小の番号（`Steam_<n>`）。消した枠の名前はまた使われる。PC では枠の数の制限は無い
+    （`IsLimitedSaveSlotsEnabled` が false）
+  - 読み込みのたびに別の `GameSave` ができる（メモリのキャッシュから読んでもバイト列から作り直す）→ 参照が替わったらロードか新しいゲーム
+  - セーブにはずっと変わらない id が無い（`SaveSlotData` は名前・日数・日時・品質など）。時点を見分けるのは枠の名前＋保存の日時
 - `MainGame.OnGameStarted` / `OnGoToMainMenu`（static の `Action`）
