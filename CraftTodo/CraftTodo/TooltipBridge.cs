@@ -56,6 +56,7 @@ namespace CraftTodo
         // （GameBalance.CreateCraftInItemsCache の craftInItemsCacheShownInTooltips）と同じ選び方
         private static Dictionary<string, List<CraftDef>> recipesByItem;
         private static bool loggedShown;
+        private static bool loggedKnowledge;
         private static int errorLogs;
 
         /// <summary>反射で引くものと作り方の索引を用意して、結果をログに出す（制作メニューを初めて組むときに 1 度）。</summary>
@@ -199,7 +200,7 @@ namespace CraftTodo
                 return;
             }
 
-            addItemWidgets(list, item, true, string.Empty, false, false, (craft as CraftDef)?.GetPossibleResultingItemDefs(false));
+            AddItemDescription(list, item, (craft as CraftDef)?.GetPossibleResultingItemDefs(false));
         }
 
         /// <summary>素材: 作り方があれば B＋作成場所、無ければ A。グループの素材は、アイコンに出している最初のアイテムで決める。</summary>
@@ -214,31 +215,95 @@ namespace CraftTodo
             List<CraftDef> recipes = RecipesOf(item.id);
             if (recipes == null || recipes.Count == 0)
             {
-                addItemWidgets(list, item, true, string.Empty, false, false, null);
+                AddItemDescription(list, item, null);
                 return;
             }
 
-            AddRecipe(list, entry, recipes, tooltip);
+            AddRecipe(list, entry, item, recipes, tooltip);
+        }
+
+        /// <summary>
+        /// A（アイテムの説明）。ゲームの所持品のツールチップと同じ部品（AddItemWidgets）から、制作に関係の無い研究とルーンの行を除く
+        /// （本人の求め、0.7.4〜。0.6.0〜0.7.3 は所持品のツールチップと同じく出していた）。未完了の研究はゲームの notShowStudyWidget で止め、
+        /// ルーン（調べ終えた「ルーン: …」と、まだの「ルーン:???」）と分解でもらえる科学の行は、できた行の頭の文字で外す。
+        /// </summary>
+        private static void AddItemDescription(List<LazyWidgetDataBase> list, ItemDef item, IReadOnlyList<ItemDef> variants)
+        {
+            int start = list.Count;
+            addItemWidgets(list, item, true, string.Empty, true, false, variants);
+            int removed = RemoveKnowledgeLines(list, start);
+            if (!loggedKnowledge)
+            {
+                loggedKnowledge = true;
+                Plugin.Log.LogInfo($"ツールチップの説明から研究とルーンの行を外す（初めての 1 回: {item.id} で {removed} 行外した・残りの部品 {list.Count - start} 個）");
+            }
+        }
+
+        private static int RemoveKnowledgeLines(List<LazyWidgetDataBase> list, int start)
+        {
+            var prefixes = new List<string>();
+            foreach (string key in new[] { "item_runes", "tut_survey_runes", "hint_science_decompose" })
+            {
+                string text = LLBase.L(key);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    prefixes.Add(text);
+                }
+            }
+
+            int removed = 0;
+            for (int i = list.Count - 1; i >= start; i--)
+            {
+                if (list[i] is UITooltipTextWidgetData line && line.Text != null && prefixes.Exists(p => line.Text.StartsWith(p, StringComparison.Ordinal)))
+                {
+                    list.RemoveAt(i);
+                    removed++;
+                }
+            }
+
+            if (removed > 0)
+            {
+                // 外した行の前後に残った区切りを 1 本にし、最後の区切りは落とす
+                for (int i = list.Count - 1; i >= Math.Max(start, 1); i--)
+                {
+                    if (list[i] is UITooltipSeparatorWidgetData && (i == list.Count - 1 || list[i - 1] is UITooltipSeparatorWidgetData))
+                    {
+                        list.RemoveAt(i);
+                    }
+                }
+            }
+
+            return removed;
         }
 
         /// <summary>
         /// B＋作成場所（ゲームの ShowCraftInfo の組み立てを写し、「作成場所」の行を足す）。作り方が何通りもあれば、置いてある制作機で
         /// 作れるレシピを優先し、無ければゲームの順で最初の 1 つ。最後に「ほかの作り方: あと N 通り」。
+        /// 効果はセルの素材（<paramref name="item"/>）で出す。レシピの主な出力（ゲームの TryGetResultingItemDef。出力の最初の 1 つ）が
+        /// その素材でないレシピがある（伐採屋のゾンビの作業は丸太と木の棒を作り、主な出力は丸太）ので、主な出力の効果を出すのは
+        /// 素材がそれと同じ（か品質の違い）のときだけ。
         /// </summary>
-        private static void AddRecipe(List<LazyWidgetDataBase> list, TodoEntry entry, List<CraftDef> recipes, UITooltip tooltip)
+        private static void AddRecipe(List<LazyWidgetDataBase> list, TodoEntry entry, ItemDef item, List<CraftDef> recipes, UITooltip tooltip)
         {
             CraftDef craft = PickRecipe(recipes, out List<WgoData> placed);
             TextStyle header = Style(tooltip, "headerTextStyle");
             TextStyle small = Style(tooltip, "smallDescriptionTextStyle");
             TextStyle selected = Style(tooltip, "selectedSmallDescriptionTextStyle");
 
-            list.Add(new UITooltipTextWidgetData(RecipeHeader(craft, placed, tooltip), TextAlignmentOptions.Center, header));
+            list.Add(new UITooltipTextWidgetData(RecipeHeader(craft, item, placed, tooltip), TextAlignmentOptions.Center, header));
 
-            ItemDef result = craft.TryGetResultingItemDef(false);
+            List<ItemDef> variants = null;
+            ItemDef result = item;
+            if (IsMainOutput(craft, item))
+            {
+                result = craft.TryGetResultingItemDef(false) ?? item;
+                variants = craft.GetPossibleResultingItemDefs(false);
+            }
+
             if (result != null && result.type != ItemType.Preach)
             {
                 int count = list.Count;
-                addItemEffectWidgets(list, result, craft.GetPossibleResultingItemDefs(false));
+                addItemEffectWidgets(list, result, variants);
                 if (list.Count > count)
                 {
                     list.Insert(count, new UITooltipSeparatorWidgetData());
@@ -266,12 +331,16 @@ namespace CraftTodo
             }
         }
 
-        /// <summary>「レシピ名 [技能のアイコン 要るレベル]」。届いていなければ数字が赤、スター制作は金の「1-N」（ゲームと同じ）。</summary>
-        private static string RecipeHeader(CraftDef craft, List<WgoData> placed, UITooltip tooltip)
+        /// <summary>
+        /// 「レシピ名 [技能のアイコン 要るレベル]」。届いていなければ数字が赤、スター制作は金の「1-N」（ゲームと同じ）。
+        /// 技能と習熟は、置いてある台（作業者の付いた台を優先）で見る。
+        /// </summary>
+        private static string RecipeHeader(CraftDef craft, ItemDef item, List<WgoData> placed, UITooltip tooltip)
         {
-            string name = LLBase.L(craft.id);
+            string name = RecipeName(craft, item);
             GameBalance balance = GameBalance.Me;
-            WGODef station = placed.Count > 0 ? placed[0].Definition : (craft.craftsIn.Count > 0 ? balance.GetDataOrNull<WGODef>(craft.craftsIn[0]) : null);
+            WgoData at = HeaderStation(placed);
+            WGODef station = at != null ? at.Definition : (craft.craftsIn.Count > 0 ? balance.GetDataOrNull<WGODef>(craft.craftsIn[0]) : null);
             TalentDef talent = station == null || string.IsNullOrEmpty(station.talent) ? null : balance.GetDataOrNull<TalentDef>(station.talent);
             if (talent == null)
             {
@@ -285,13 +354,66 @@ namespace CraftTodo
             }
             else
             {
-                PlayerController player = MainGame.PlayerController;
-                bool reached = player != null && player.GetMasteryLevelForTalentBranch(station.talent, craft) >= craft.talentLock;
+                // ゲームの ShowCraftInfo と同じく、台に付いている作業者（ゾンビ）の習熟で見る。いなければプレイヤー
+                IWorker worker = at?.Worker;
+                if (worker == null)
+                {
+                    worker = MainGame.PlayerController;
+                }
+
+                bool reached = worker != null && worker.GetMasteryLevelForTalentBranch(station.talent, craft) >= craft.talentLock;
                 TextStyle style = Style(tooltip, reached ? "headerBoldTextStyle" : "headerBoldTextStyleNotEnough");
                 level = style.ApplyStyleToString(craft.talentLock.ToString());
             }
 
             return name + " " + (talent.id.FontIcon() + " " + (level ?? string.Empty)).NOBR();
+        }
+
+        /// <summary>
+        /// レシピの名前。訳があればそれ（ゲームの製作の窓と同じ）、無ければセルの素材の名前（ゲームの技術ツリーの見出し
+        /// LinkedEntityWidgetData.GetLinkedEntityHeader は作る物の名前にするが、主な出力が素材と違うレシピがあるので素材の名前）。
+        /// ゾンビの作業場のレシピ（伐採屋の sawmill_wood_zombie_craft など）は訳が無く、0.7.1 までは id がそのまま見出しに出ていた。
+        /// </summary>
+        private static string RecipeName(CraftDef craft, ItemDef item)
+        {
+            if (LLBase.HasL(craft.id))
+            {
+                return LLBase.L(craft.id);
+            }
+
+            return item != null ? item.GetHeader() : LLBase.L(craft.id);
+        }
+
+        /// <summary>素材がレシピの主な出力（か、その品質の違い）か。</summary>
+        private static bool IsMainOutput(CraftDef craft, ItemDef item)
+        {
+            ItemDef result = craft.TryGetResultingItemDef(false);
+            if (result == null || item == null)
+            {
+                return false;
+            }
+
+            if (result.id == item.id)
+            {
+                return true;
+            }
+
+            List<ItemDef> variants = craft.GetPossibleResultingItemDefs(false);
+            return variants != null && variants.Exists(v => v != null && v.id == item.id);
+        }
+
+        /// <summary>見出しの技能と習熟を取る台: 置いてある台のうち作業者の付いた最初のもの、無ければ最初の台（置いていなければ null）。</summary>
+        private static WgoData HeaderStation(List<WgoData> placed)
+        {
+            foreach (WgoData station in placed)
+            {
+                if (station?.Worker != null)
+                {
+                    return station;
+                }
+            }
+
+            return placed.Count > 0 ? placed[0] : null;
         }
 
         private static string StationNames(CraftDef craft)
@@ -451,6 +573,10 @@ namespace CraftTodo
             {
                 var index = new Dictionary<string, List<CraftDef>>();
                 int crafts = 0;
+                int unnamed = 0;
+                string unnamedExample = null;
+                int secondary = 0;
+                string secondaryExample = null;
                 foreach (CraftDef craft in balance.craftDefs)
                 {
                     if (!Indexable(craft))
@@ -467,10 +593,21 @@ namespace CraftTodo
                     if (outputs.Count > 0)
                     {
                         crafts++;
+                        if (!LLBase.HasL(craft.id))
+                        {
+                            unnamed++;
+                            unnamedExample = unnamedExample ?? craft.id;
+                        }
                     }
 
                     foreach (string id in outputs)
                     {
+                        if (!IsMainOutput(craft, balance.GetDataOrNull<ItemDef>(id)))
+                        {
+                            secondary++;
+                            secondaryExample = secondaryExample ?? id + "←" + craft.id;
+                        }
+
                         if (!index.TryGetValue(id, out List<CraftDef> recipes))
                         {
                             recipes = new List<CraftDef>();
@@ -506,6 +643,10 @@ namespace CraftTodo
                 else
                 {
                     Plugin.Log.LogInfo($"作り方の索引: {index.Count} 品目（2 通り以上 {several} 品目、最多 {most} 通り: {mostId}）・レシピ {crafts} 件 / 全 {balance.craftDefs.Count} 件");
+                    // 名前の訳が無いレシピは、見出しを素材の名前にする（全部が訳無しなら、言語がまだ読めていない）。
+                    // 主な出力でない品として入った組は、効果をその品で出す
+                    Plugin.Log.LogInfo($"名前の訳が無いレシピ {unnamed} 件 / {crafts} 件（見出しは素材の名前にする。例: {unnamedExample ?? "-"}）・"
+                        + $"主な出力でない品として入った組 {secondary} 組（効果はその品で出す。例: {secondaryExample ?? "-"}）");
                 }
             }
             catch (Exception e)
