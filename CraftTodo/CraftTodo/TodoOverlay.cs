@@ -32,6 +32,9 @@ namespace CraftTodo
     {
         private const float RefreshInterval = 0.5f;
 
+        // F9 で数え方を切り替えたとき、帯の文字を替えておく時間（2026-11-21 に本人が図で決めた）
+        private const float NoticeSeconds = 2f;
+
         // HUD（50）より上、カットシーン（300）・ツールチップ（700）より下（GUIElements の定数）。
         // セルのツールチップ（ゲームの UITooltip）はこの上に出る（TooltipBridge が初めて出したときにログで確かめる）
         internal const int SortingOrder = 55;
@@ -85,6 +88,7 @@ namespace CraftTodo
         private static readonly Color MissingColor = new Color32(240, 86, 60, 255);
         private static readonly Color TimesColor = new Color32(255, 195, 0, 255);
         private static readonly Color DimColor = new Color32(190, 165, 135, 255);
+        private static readonly Color NoticeColor = new Color32(255, 214, 92, 255);
 
         // ゲームの絵が引けなかった部品の単色
         private static readonly Color PlainHeader = new Color(0.33f, 0.22f, 0.15f, 0.95f);
@@ -135,10 +139,19 @@ namespace CraftTodo
         private float nextHudSearch;
         private float nextStyleRetry;
         private float retryDelay = 5f;
+        private string inlineKey;
+        private string noticeText;
+        private float noticeUntil;
+        private string noticeShown;
+        private TMP_Text noticeLabel;
 
         private void Start()
         {
-            Plugin.Instance.Todos.Changed += MarkDirty;
+            Plugin plugin = Plugin.Instance;
+            plugin.Todos.Changed += MarkDirty;
+            // 帯の右端のキーは組み立てのときに書くので、キーを変えたら組み直す。数え方を変えたらすぐ数え直す
+            plugin.ToggleKey.SettingChanged += OnLookSettingChanged;
+            plugin.StackMaterials.SettingChanged += OnCountSettingChanged;
         }
 
         private void OnDestroy()
@@ -146,6 +159,8 @@ namespace CraftTodo
             if (Plugin.Instance != null)
             {
                 Plugin.Instance.Todos.Changed -= MarkDirty;
+                Plugin.Instance.ToggleKey.SettingChanged -= OnLookSettingChanged;
+                Plugin.Instance.StackMaterials.SettingChanged -= OnCountSettingChanged;
             }
 
             if (root != null)
@@ -155,6 +170,51 @@ namespace CraftTodo
         }
 
         private void MarkDirty() => dirty = true;
+
+        private void OnLookSettingChanged(object sender, EventArgs e) => dirty = true;
+
+        private void OnCountSettingChanged(object sender, EventArgs e) => nextRefresh = 0f;
+
+        /// <summary>帯の文字を <see cref="NoticeSeconds"/> 秒だけ <paramref name="text"/> に替える（F9 で数え方を切り替えたとき）。</summary>
+        private void ShowNotice(string text)
+        {
+            noticeText = text;
+            noticeUntil = Time.unscaledTime + NoticeSeconds;
+        }
+
+        /// <summary>帯（帯が無ければ板の中の見出し）に知らせを出す・元に戻す。組み直したあと（見出しが新しくなった）も残りの時間は出し続ける。</summary>
+        private void UpdateNotice()
+        {
+            if (noticeText != null && Time.unscaledTime >= noticeUntil)
+            {
+                noticeText = null;
+            }
+
+            TMP_Text label = strip != null ? strip.Title : inlineTitle;
+            if (label == null || (label == noticeLabel && noticeText == noticeShown))
+            {
+                return;
+            }
+
+            string want = noticeText;
+            if (strip != null)
+            {
+                strip.Title.text = want ?? Strings.Header;
+                strip.Title.color = want != null ? NoticeColor : strip.TitleColor;
+                if (strip.Key != null)
+                {
+                    strip.Key.gameObject.SetActive(want == null);
+                }
+            }
+            else
+            {
+                inlineTitle.text = want ?? Strings.HeaderWithKey(inlineKey);
+                inlineTitle.color = want != null ? NoticeColor : DimColor;
+            }
+
+            noticeShown = want;
+            noticeLabel = label;
+        }
 
         private void Update()
         {
@@ -227,11 +287,12 @@ namespace CraftTodo
 
             if (Time.unscaledTime >= nextRefresh)
             {
-                RefreshCounts();
+                RefreshCounts(plugin);
                 Reposition(plugin);
                 nextRefresh = Time.unscaledTime + RefreshInterval;
             }
 
+            UpdateNotice();
             UpdateScroll();
         }
 
@@ -245,8 +306,26 @@ namespace CraftTodo
             return styler.UsesGameStyles && (!plugin.GameFrame.Value || (skin.FromGame && parts.Complete && plates != null && plates.Complete));
         }
 
-        private static void HandleKeys(Plugin plugin)
+        private void HandleKeys(Plugin plugin)
         {
+            // 設定の窓を開いている間（キーを選んでいる間も）は、ここのキーを鳴らさない
+            if (SettingsWindow.BlocksHotkeys)
+            {
+                return;
+            }
+
+            if (plugin.StackKey.Value.IsDown())
+            {
+                bool on = plugin.ToggleStacking();
+                // 右下のゲームの知らせで出す（本人の希望）。出せなければ帯の文字を 2 秒替える
+                if (!GameNotice.TryShow("crafttodo_stacking", on ? Strings.StackingNoticeOn : Strings.StackingNoticeOff))
+                {
+                    ShowNotice(on ? Strings.StackingOn : Strings.StackingOff);
+                }
+
+                GameBridge.PlayClick();
+            }
+
             // BepInEx のショートカットは、指定していないキーが押されている間は鳴らない
             // （素のホイールは Shift を押している間は鳴らない）。それでも同じ設定にされたときのために、減らす方を先に見る
             if (plugin.RemoveKey.Value.IsDown())
@@ -269,8 +348,7 @@ namespace CraftTodo
 
             if (plugin.ClearKey.Value.IsDown())
             {
-                plugin.Todos.Clear();
-                Plugin.Log.LogInfo("製作メモを全部消した");
+                plugin.ClearTodos("キー");
             }
             else if (plugin.ToggleKey.Value.IsDown())
             {
@@ -369,7 +447,8 @@ namespace CraftTodo
             UiFactory.Stretch(backMask, 0f, 0f, 0f, 0f);
             skin.Apply(bodyImage, backMask);
 
-            string key = plugin.ToggleKey.Value.MainKey == KeyCode.None ? null : plugin.ToggleKey.Value.ToString();
+            string key = plugin.ToggleKey.Value.MainKey == KeyCode.None ? null : Strings.KeyName(plugin.ToggleKey.Value);
+            inlineKey = key;
             // 札は枠の絵と同じくゲームの絵を使う設定のときだけ（札が引けなければ 0.4.4 の形）
             usePlates = plugin.GameFrame.Value && skin.FromGame && plates != null && plates.Usable;
             int minInner = usePlates ? PlateParts.SourceWidth : MinInnerWidth;
@@ -587,6 +666,7 @@ namespace CraftTodo
 
             view.Title = UiFactory.CreateLabel(view.Rect, "Title", styler, TextRole.Header, TextAlignmentOptions.Center);
             view.Title.text = Strings.Header;
+            view.TitleColor = view.Title.color;
             int titleWidth = UiFactory.TextWidth(view.Title, view.Title.text);
 
             if (!string.IsNullOrEmpty(key))
@@ -896,12 +976,21 @@ namespace CraftTodo
             }
         }
 
-        private void RefreshCounts()
+        private void RefreshCounts(Plugin plugin)
         {
             bool reorder = false;
+            var entries = new List<TodoEntry>(views.Count);
             foreach (EntryView view in views)
             {
-                List<MaterialProgress> progress = TodoProgress.Evaluate(view.Entry, GameBridge.CreateCounter(view.Entry));
+                entries.Add(view.Entry);
+            }
+
+            // 積み上げるときは、同じ素材を取り合う件の要る数を合計する（TodoProgress.EvaluateAll）
+            List<List<MaterialProgress>> all = TodoProgress.EvaluateAll(entries, new GameStock(), plugin.StackMaterials.Value);
+            for (int v = 0; v < views.Count; v++)
+            {
+                EntryView view = views[v];
+                List<MaterialProgress> progress = all[v];
                 for (int i = 0; i < progress.Count && i < view.Materials.Count; i++)
                 {
                     MaterialProgress p = progress[i];
@@ -1020,6 +1109,7 @@ namespace CraftTodo
             public RectTransform Rect;
             public int Height;
             public TMP_Text Title;
+            public Color TitleColor;
             public RectTransform CornerLeft;
             public RectTransform CornerRight;
             public Vector2 CornerSize;

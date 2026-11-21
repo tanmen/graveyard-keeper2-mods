@@ -233,6 +233,40 @@ MonoScript は別の bundle にあるので、Image は型の木のキー（`m_S
 （4.3MB）。こちらは**型の木が省かれている**ので UnityPy でもそのままは読めない（`get_raw_data()` の生のバイト列を、逆コンパイルした
 型の並びに沿って読む。`NeedItemData` は string `id`・`LazyExpression count`（string 2 つ・int・float・bool）・int `groupType`）
 
+## Mod の窓・ESC の窓・設定の窓（2026-11-21 に読んだ。制作メニューの 0.7.0 の設定の窓の拠り所）
+
+- **ゲームの Mods の窓は `LazyBearTechnology.UICodeModsWindow`**（Assembly-CSharp の中）。開けるのはメインメニューの丸いボタン
+  （`UIMainMenuWindow.OnModsButtonClicked`）だけで、ゲーム中は開けない。中身は mod ごとの札（名前・版・状態）と「有効 / 無効」
+  「Workshop」のボタンだけで、mod の設定を載せる口は無い。版は modinfo.json の `version`（README_MODDING.txt の 7）
+- この窓は**コードで組まれていて、自作の窓の手本になる**: UI の根（`GUIElements` の private `uiFitter`）の下に GameObject を作り、
+  `Canvas`（overrideSorting・sortingOrder 480）・`GraphicRaycaster`・`GamepadNavigationController` を付けてから
+  `LazyWindow<LazyWidgetDataBase>` を継いだ部品を AddComponent し、`Init()` → `Open(null)`。見た目は `UIGameSettingsWindow` の
+  `GenericWindowLayout`（枠 `comm-frame_1-border`・暗い地 `comm-content_bg_dark-side-small`・木の帯 `main_window-header_1`・閉じるボタン）を
+  Instantiate して `Content` の子を消し、`Frame/HeaderGroup/Header` の LocalizedLabel を消して題を書く。閉じるボタンは
+  `Frame/HeaderGroup/CloseButton` の LazyButton を `closeButton` に入れておくと `LazyWindow.Init` が Close につなぐ。
+  `LazyWindow` を継ぐと ESC（`GameKey.Back` → `OnPressedBack`）で閉じ、窓の重なり（`LazyWindowsStackController`）にも載る。
+  抽象のメンバーは `TestDraw()` だけ
+- **設定の窓 `UIGameSettingsWindow` の部品**（MainScene に常駐。`Resources.FindObjectsOfTypeAll` で引ける）: private の
+  `vSyncButton` などが `UISwitchButton`（行 330x16: 名前 `LeftName` 168 幅・`ToLeft` / `ToRight` 25x25 の矢印・値の欄 `Back`
+  （`comm-cell_dark_2`、118x17）の中に `Value`）。`Initialize(Action<int>, string[] fields, index, header)`・`UpdateField(index, fireCallback)`。
+  音量は `UISlider`（`Minus`・`Slider`（118x18）・`Plus`・`Value`）で、`Initialize(Action<float>, value, step)` は 0〜100 を step で刻む作り
+  （`slider.maxValue = 100 / step`）。別の範囲にするなら private の `slider`（UnityEngine.UI.Slider）の min / max と `step`・`onChangedCallback` を
+  直に入れる（− ＋ は `slider.value` を 1 ずつ動かす）。下の「OK」は `lazyButton`（`UIDialogWindowButton`、`Draw(new UIDialogWindowData.ButtonData(...))`）。
+  中身の並びは VerticalLayoutGroup（上 3・下 2・間 6）。写した部品は `LocalizedLabel.IgnoreLocalize = true` にしないと文言が訳文に戻る
+- オン / オフの文言はゲームの訳文 `ui_off` / `ui_on`（日本語は「オフ」「オン」）
+- **ESC の窓は `UIGamePauseWindow`**（MainScene に常駐）。ボタンは private の `settingsBtn`・`tutorialListBtn`（実行時に作る）・
+  `controlsBtn`・`goToMenuBtn`（162x26、`comm-btn-simple_red-active`）。`Init` でゲーム自身が `goToMenuBtn` を写して「不具合を報告」を足す
+  （`CreateBugReportButton`: Instantiate して SetSiblingIndex、`onClick.RemoveAllListeners` → AddListener、`SetCallbacksIntoGamepadNavigationItem`）。
+  「設定」を押すと `Close()` してから設定の窓を開き、その `onClosed` で `Open(null)` し直す。制作メニューは `Open` の Prefix で
+  `controlsBtn` を写して「操作方法」の下に足す（`Init` が mod より先に済んでいても足せるように）
+- **右下の知らせは `UINotificator`**（`LazySingleton`。アイテムを拾った・所持品がいっぱいなどと同じ部品）。知らせは右下に付け
+  （anchor (1,0)）、`appearPoint` から `startPoint` へ滑り込み、`displayingTime`（既定 4 秒）で引っ込む。重なったら上へ積む。
+  public の `ShowSimpleTextNotification(string locale)` は訳文の鍵しか受けない（`LLBase.L(locale)` を出す）ので、文をそのまま出すなら
+  private の `ShowSimpleTextNotification(string locale, string text)` を反射で呼ぶ（制作メニューの F9 の知らせ。`GameNotice`）。
+  ⚠ `LazySingleton<T>.Instance` は、見つからないと空の GameObject に部品を付けて作ってしまうので、`Resources.FindObjectsOfTypeAll` で探す
+- 確かめの窓は `LazyUI.GetWindow<UIDialogWindow>().Open(new UIDialogWindowData(題, 文, はい, いいえ))`。自作の窓（並び順 480）との
+  重なり順は確かめていないので、制作メニューの「メモを全部消す」は確かめの窓を使わず 2 度押しにした
+
 ## ゲームの状態
 
 - `MainGame.Instance`、`MainGame.PlayerData`、`MainGame.WorldData`

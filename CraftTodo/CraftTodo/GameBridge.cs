@@ -285,7 +285,7 @@ namespace CraftTodo
                 inventory.Add(player.Inventory);
             }
 
-            WorldZoneData zone = ZoneOf(ResolveStation(entry));
+            WorldZoneData zone = ZoneOfEntry(entry);
             if (zone != null)
             {
                 inventory.Add(new MultiInventory(zone));
@@ -293,6 +293,9 @@ namespace CraftTodo
 
             return inventory;
         }
+
+        /// <summary>メモの作る場所のゾーン（収納を数える範囲）。作る場所が引けなければ null。</summary>
+        public static WorldZoneData ZoneOfEntry(TodoEntry entry) => ZoneOf(ResolveStation(entry));
 
         private static WgoData ResolveStation(TodoEntry entry)
         {

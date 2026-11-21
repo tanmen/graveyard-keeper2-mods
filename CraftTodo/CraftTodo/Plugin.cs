@@ -44,6 +44,10 @@ namespace CraftTodo
 
         internal ConfigEntry<bool> AddWhenCraftWindowOpens { get; private set; }
 
+        internal ConfigEntry<bool> StackMaterials { get; private set; }
+
+        internal ConfigEntry<KeyboardShortcut> StackKey { get; private set; }
+
         internal ConfigEntry<bool> AutoPosition { get; private set; }
 
         internal ConfigEntry<float> OffsetX { get; private set; }
@@ -63,6 +67,8 @@ namespace CraftTodo
             Todos.MaxEntries = MaxEntries.Value;
             MaxEntries.SettingChanged += (_, __) => Todos.MaxEntries = MaxEntries.Value;
             storage = new TodoStorage(Path.Combine(Paths.ConfigPath, "CraftTodo"), Todos, Log);
+
+            StackMaterials.SettingChanged += (_, __) => Log.LogInfo($"同じ素材の積み上げ: {(StackMaterials.Value ? "オン" : "オフ")}");
 
             ApplyPatches();
             gameObject.AddComponent<TodoOverlay>();
@@ -142,6 +148,19 @@ namespace CraftTodo
             }
         }
 
+        /// <summary>同じ素材を積み上げて数えるかを切り替える（StackKey・設定の窓）。切り替えたあとの値を返す。</summary>
+        internal bool ToggleStacking()
+        {
+            StackMaterials.Value = !StackMaterials.Value;
+            return StackMaterials.Value;
+        }
+
+        internal void ClearTodos(string how)
+        {
+            Todos.Clear();
+            Log.LogInfo($"製作メモを全部消した（{how}）");
+        }
+
         private void BindConfig()
         {
             Visible = Config.Bind("Display", "Visible", true,
@@ -154,6 +173,11 @@ namespace CraftTodo
                 new ConfigDescription("残すメモの数の上限（超えたら古いものから消える）", new AcceptableValueRange<int>(1, 30)));
             GameFrame = Config.Bind("Display", "GameFrame", true,
                 "背景をゲームの UI の枠の絵にする。false なら単色の半透明の板（0.2.0 までの見た目）");
+            StackMaterials = Config.Bind("Counting", "StackMaterials", false,
+                "同じ素材を使うメモの要る数を積み上げる（鉄の地金 ×4 が 2 件なら、どちらも 8 要る扱い）。false ならメモごとに在庫を全部数える"
+                + "（StackKey でも切り替わる）");
+            StackKey = Config.Bind("Counting", "StackKey", new KeyboardShortcut(KeyCode.F9),
+                "同じ素材の積み上げのオン・オフを切り替えるキー");
             AutoPosition = Config.Bind("Position", "AutoPosition", true,
                 "左上の HUD（顔とエネルギーの枠）のすぐ下に置く。false なら画面の上から 17% の高さに置く");
             OffsetX = Config.Bind("Position", "OffsetX", 4f,
