@@ -4,4 +4,9 @@
     <Project Path="CraftTodo/CraftTodo.Core.Tests/CraftTodo.Core.Tests.csproj" />
     <Project Path="CraftTodo/CraftTodo/CraftTodo.csproj" />
   </Folder>
+  <Folder Name="/StockFinder/">
+    <Project Path="StockFinder/StockFinder.Core/StockFinder.Core.csproj" />
+    <Project Path="StockFinder/StockFinder.Core.Tests/StockFinder.Core.Tests.csproj" />
+    <Project Path="StockFinder/StockFinder/StockFinder.csproj" />
+  </Folder>
 </Solution>
