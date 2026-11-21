@@ -51,6 +51,30 @@ public class TodoFormatTests
     }
 
     [Fact]
+    public void RoundTrip_TownBuildingCraft_IsSubtractedByTheCraftStartKey()
+    {
+        // 町の建物（0.7.1〜）はゲームの「town_building_craft:＋建物の id」の製作として持つ。id の「:」も読み書きでき、
+        // 建てたとき（WgoData.OnCraftStart）に組む鍵 MakeKey(Craft, 製作の id, 机の id) で減る
+        const string recipe = "town_building_craft:repair_big_house";
+        const string station = "3f2a9c1e-0000-1111-2222-333344445555";
+        var entry = new TodoEntry(TodoKind.Craft, recipe, station, "t_b_signboard_house", "i_b_house", 1, new[]
+        {
+            new TodoMaterial("plank", 16, false),
+            new TodoMaterial("stone_block", 8, false),
+            new TodoMaterial("nails", 4, false),
+        });
+
+        TodoEntry read = TodoFormat.Read(TodoFormat.Write(new[] { entry })).Single();
+        var list = new TodoList();
+        list.AddCount(read);
+
+        Assert.Equal(recipe, read.RecipeId);
+        Assert.Equal(new[] { 16, 8, 4 }, read.Materials.Select(read.NeedOf));
+        Assert.Equal(0, list.SubtractCount(TodoEntry.MakeKey(TodoKind.Craft, recipe, station), 1));
+        Assert.Equal(0, list.Count);
+    }
+
+    [Fact]
     public void Read_V1_TreatsCountsAsTotalsForOneTime()
     {
         // 0.2.0 が書いた形（本人のセーブにあるものと同じ形）。数は回数を掛けたあとの合計

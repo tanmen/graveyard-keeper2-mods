@@ -15,6 +15,7 @@ namespace CraftTodo
     /// | 当たった部品 | 返すもの（回数） |
     /// | --- | --- |
     /// | 建物の窓の行（UIBuildingWidget。素材のセルも含む） | その建物・拡張を 1 つ |
+    /// | 町の建物の窓の行（UITownBuildingWidget。住居の「大きな家を修理する」など。素材のセルも含む） | その建物を 1 つ |
     /// | 作業台のレシピのアイコン（UICraftPreviewItemCell） | そのレシピを 1 回分 |
     /// | 作業台のキューの行（UICraftQueueElementWidget） | そのレシピを、キューの回数分 |
     /// | 製作の行（UICraftWidget） | そのレシピを、行で選んだ回数分 |
@@ -62,6 +63,13 @@ namespace CraftTodo
                 BuildData build = DataOf<UIBuildingWidgetData>(building)?.BuildData;
                 bool isRecipe = build?.Definition != null && !build.IsMoveSelection && !build.IsMovePlacement && build.BuildingMode != BuildingDef.BuildingMode.Remove;
                 return isRecipe ? GameBridge.FromBuild(build, GameBridge.StationOfBuildingWidget(building)) : null;
+            }
+
+            UITownBuildingWidget town = hit.GetComponentInParent<UITownBuildingWidget>();
+            if (town != null)
+            {
+                TownBuildingDef def = DataOf<UITownBuildingWidgetData>(town)?.TownBuildingDef;
+                return def == null ? null : GameBridge.FromTownBuilding(def, GameBridge.StationOfTownBuildingWidget(town));
             }
 
             UICraftPreviewItemCell cell = hit.GetComponentInParent<UICraftPreviewItemCell>();

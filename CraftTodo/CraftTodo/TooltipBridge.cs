@@ -87,7 +87,7 @@ namespace CraftTodo
                 var list = new List<LazyWidgetDataBase>();
                 if (materialIndex < 0)
                 {
-                    AddProduct(list, entry);
+                    AddProduct(list, entry, tooltip);
                 }
                 else if (materialIndex < entry.Materials.Count)
                 {
@@ -142,12 +142,35 @@ namespace CraftTodo
 
         // ---- 中身 ----
 
-        /// <summary>A: 作る物。レシピはアイテムの説明（ゲームの ShowCraftOutputCell と同じ）、建物は名前と説明。</summary>
-        private static void AddProduct(List<LazyWidgetDataBase> list, TodoEntry entry)
+        /// <summary>
+        /// A: 作る物。レシピはアイテムの説明（ゲームの ShowCraftOutputCell と同じ）、建物は名前と説明。
+        /// 町の建物も名前と説明（ゲームの町の建物の窓はツールチップを出さないので、建物の窓と同じ形にした。建てる製作の出力は
+        /// 建ったときに落ちる物で、作る物ではないので引かない）。
+        /// </summary>
+        private static void AddProduct(List<LazyWidgetDataBase> list, TodoEntry entry, UITooltip tooltip)
         {
             GameBalance balance = GameBalance.Me;
             if (balance == null || string.IsNullOrEmpty(entry.RecipeId))
             {
+                return;
+            }
+
+            string townId = GameBridge.TownBuildingIdOf(entry);
+            if (townId != null)
+            {
+                TownBuildingDef town = balance.GetDataOrNull<TownBuildingDef>(townId);
+                if (town == null)
+                {
+                    return;
+                }
+
+                list.Add(new UITooltipTextWidgetData(town.GetHeader(), TextAlignmentOptions.Center, Style(tooltip, "headerTextStyle")));
+                int count = list.Count;
+                if (tryAddDescriptionWidget(list, town.id))
+                {
+                    list.Insert(count, new UITooltipSeparatorWidgetData());
+                }
+
                 return;
             }
 

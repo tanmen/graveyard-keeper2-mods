@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace CraftTodo.Core
 {
-    /// <summary>どの窓から足したか。建物の窓（設置・拡張）と製作の窓で、同じ id でも別のものになる。</summary>
+    /// <summary>
+    /// どの窓から足したか。建物の窓（設置・拡張）と製作の窓で、同じ id でも別のものになる。
+    /// 町の建物の窓（0.7.1〜）は製作（ゲームが建てるときに作る「town_building_craft:＋建物の id」の製作）として持つ。
+    /// </summary>
     public enum TodoKind
     {
         Build = 0,
@@ -57,7 +60,7 @@ namespace CraftTodo.Core
 
         public TodoKind Kind { get; }
 
-        /// <summary>建物なら BuildingDef の id、製作なら CraftDef の id。</summary>
+        /// <summary>建物なら BuildingDef の id、製作なら CraftDef の id（町の建物は town_building_craft:＋TownBuildingDef の id）。</summary>
         public string RecipeId { get; }
 
         /// <summary>作る場所（作業台・建築机）の一意な id。在庫を数えるゾーンをここから引く。分からなければ空。</summary>

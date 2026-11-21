@@ -115,6 +115,67 @@ namespace CraftTodo
             return new TodoEntry(TodoKind.Build, def.id, StationIdOf(station), station?.id, buildData.IconId, 1, materials);
         }
 
+        /// <summary>
+        /// 町の建物の製作の id の頭（ゲームの LazyConsts.TOWN_BUILDING_CRAFT_PREFIX と同じ）。ゲームは町の建物（TownBuildingDef）ごとに
+        /// 「town_building_craft:＋建物の id」の製作（CraftDef。素材は建物と同じ）を持ち、建てるときはその製作を窓を開いた机（看板など）の上で
+        /// 即時に作る（CraftComponent.ProcessInstantCraft → WgoData.OnCraftStart）。
+        /// </summary>
+        public const string TownCraftPrefix = "town_building_craft:";
+
+        /// <summary>
+        /// 町の建物の窓（住居の「大きな家を修理する」など）の 1 行から。1 つ分。メモは製作（<see cref="TodoKind.Craft"/>）として、
+        /// レシピの id はゲームの町の建物の製作の id で持つ（保存形式を変えずに済み、建てたら CraftUnitStartedPatch がそのまま減らす）。
+        /// 素材の数は窓のセルと同じ <c>NeedItemData.GetCount()</c>、アイコンは窓の行と同じ（無ければ i_b_goc_tent）。
+        /// </summary>
+        public static TodoEntry FromTownBuilding(TownBuildingDef def, WgoData station)
+        {
+            if (def == null || string.IsNullOrEmpty(def.id))
+            {
+                return null;
+            }
+
+            var materials = new List<TodoMaterial>();
+            if (def.needItems != null)
+            {
+                foreach (NeedItemData need in def.needItems)
+                {
+                    if (need != null && !string.IsNullOrEmpty(need.Id))
+                    {
+                        materials.Add(new TodoMaterial(need.Id, need.GetCount(), need.IsGroup));
+                    }
+                }
+            }
+
+            string icon = !string.IsNullOrEmpty(def.iconId) && Sprite(def.iconId) != null ? def.iconId : TownBuildingFallbackIcon;
+            return new TodoEntry(TodoKind.Craft, TownCraftPrefix + def.id, StationIdOf(station), station?.id, icon, 1, materials);
+        }
+
+        /// <summary>町の建物の窓の行がアイコンの無いときに出す絵（UITownBuildingWidget.Redraw と同じ）。</summary>
+        private const string TownBuildingFallbackIcon = "i_b_goc_tent";
+
+        /// <summary>メモが町の建物なら、その建物の id（TownBuildingDef）。違えば null。</summary>
+        public static string TownBuildingIdOf(TodoEntry entry)
+        {
+            string id = entry?.RecipeId;
+            return entry != null && entry.Kind == TodoKind.Craft && id != null && id.StartsWith(TownCraftPrefix, StringComparison.Ordinal) && id.Length > TownCraftPrefix.Length
+                ? id.Substring(TownCraftPrefix.Length)
+                : null;
+        }
+
+        /// <summary>町の建物の行が載っている窓から、その窓を開いた机（看板・建物。建てる製作はこの上で作られる）を引く。</summary>
+        public static WgoData StationOfTownBuildingWidget(Component widget)
+        {
+            UITownBuildingWindow window = widget == null ? null : widget.GetComponentInParent<UITownBuildingWindow>();
+            if (window == null)
+            {
+                return null;
+            }
+
+            UITownBuildingWindowData data = Traverse.Create(window).Field("data").GetValue<UITownBuildingWindowData>();
+            Wgo wgo = data?.AssignedWgo;
+            return wgo == null ? null : wgo.Data;
+        }
+
         /// <summary>製作の窓（回数を選ぶ窓）から。回数は窓で選んでいる回数、素材の数は 1 回分。</summary>
         public static TodoEntry FromCraft(UIBaseCraftSelectionWindowData data)
         {
@@ -328,7 +389,8 @@ namespace CraftTodo
 
         // ---- 名前とアイコン ----
 
-        public static string RecipeName(TodoEntry entry) => Localize(entry.RecipeId);
+        /// <summary>メモの名前。町の建物は建物の名前（窓の行と同じ。製作の id の文言は無い）。</summary>
+        public static string RecipeName(TodoEntry entry) => Localize(TownBuildingIdOf(entry) ?? entry.RecipeId);
 
         public static string StationName(TodoEntry entry) => string.IsNullOrEmpty(entry.StationDefId) ? string.Empty : Localize(entry.StationDefId);
 
@@ -512,8 +574,35 @@ namespace CraftTodo
                     }
                 }
 
+                // 町の建物（住居の「大きな家を修理する」など。0.7.1〜）。製作の中の town_building_craft: の数も出す（建てるときに使う製作が引けるか）
+                var towns = new SortedDictionary<int, int>();
+                string widestTown = "-";
+                int townMax = 0;
+                int townCrafts = 0;
+                foreach (CraftDef def in balance.craftDefs)
+                {
+                    townCrafts += def?.id != null && def.id.StartsWith(TownCraftPrefix, StringComparison.Ordinal) ? 1 : 0;
+                }
+
+                foreach (TownBuildingDef def in balance.townBuildingDefs)
+                {
+                    if (def == null)
+                    {
+                        continue;
+                    }
+
+                    int cells = def.needItems?.Count ?? 0;
+                    towns[cells] = (towns.TryGetValue(cells, out int n) ? n : 0) + 1;
+                    if (cells > townMax)
+                    {
+                        townMax = cells;
+                        widestTown = def.id;
+                    }
+                }
+
                 return $"レシピの素材のセルの数（材料＋耐久を使う道具）: 製作 {Distribution(crafts)}（最大 {craftMax}: {widestCraft}。道具を別に持つもの {tools} 件）"
-                    + $" / 建物 {Distribution(builds)}（最大 {buildMax}: {widestBuild}）";
+                    + $" / 建物 {Distribution(builds)}（最大 {buildMax}: {widestBuild}）"
+                    + $" / 町の建物 {Distribution(towns)}（最大 {townMax}: {widestTown}。建てる製作 {townCrafts} 件）";
             }
             catch (Exception e)
             {

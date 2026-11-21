@@ -11,7 +11,7 @@ ilspycmd -p -o <出力先> -r "$M" "$M/LazyBearTechnology.dll"
 
 クラスは `LazyBearTechnology` 名前空間（UI の基盤・文言・スプライト）以外、ほぼ全部が名前空間なし。
 
-## 窓は 2 系統
+## 窓は 2 系統（＋町の建物の窓。下の 3 つ目の節）
 
 ### 建物の窓（`UIBuildingWindow`）—— 建築机で開く。スクショの「工場」の窓
 
@@ -53,12 +53,32 @@ ilspycmd -p -o <出力先> -r "$M" "$M/LazyBearTechnology.dll"
   （`addToQueue: False`）メモが減らなかった
 - 完了は private `Finish()`（`UpdateCountOnFinish` → 出来上がりを出して `OnCraftFinish`）。`Made craft output as common item [...]` が出る
 
+### 町の建物の窓（`UITownBuildingWindow`）—— 町の看板などで開く。住居の「大きな家を修理する」の窓（2026-11-22 に読んだ。0.7.1 の拠り所）
+
+- 3 系統目の窓。`UITownBuildingWindow : LazyWindow<UITownBuildingWindowData>`。データは `AssignedWgo`（窓を開いた机。看板・建物）・
+  `BuildsToDisplay`（`List<TownBuildingDef>`）・`OnBuildPressed`・`PlayerData`。窓の題は `UIInfoWidget` に `AssignedWgo.Data` を渡したもので、
+  名前は `LLBase.L(wgoData.id)`（制作メニューの制作機の区切りと同じ引き方）
+- 行は `UITownBuildingWidget : LazyWidget<UITownBuildingWidgetData>`。データは `TownBuildingDef`・`CraftItemCellsData`（`TownBuildingDef.needItems` から）・
+  `MultiInventory`（窓が作った `new MultiInventory(PlayerData)` = 持ち物＋いまいるゾーン）・`GetCurrentNeedItems()`。名前は `LLBase.L(TownBuildingDef.id)`、
+  アイコンは `TownBuildingDef.iconId`（無ければ `i_b_goc_tent`）。素材のセルは行の子で、押すと行の private `OnPress()` に来る。
+  ゲームはこの行にツールチップを出さない（`OnOver` は null）
+- 開く所は 2 つ: `TownBuildingPlaceInteractionHandler.Interact`（看板）と `Flow_OpenTownBuildingWindow`（スクリプト。`isForLevelUp` なら
+  繋がった建物の机）。どちらも `OnBuildPressed` で `new MultiInventory(PlayerController.PlayerData).HasItemsById(...)` が偽なら**何もしない**
+- **建てるのは製作**: ゲームは町の建物ごとに `town_building_craft:＋建物の id`（`LazyConsts.TOWN_BUILDING_CRAFT_PREFIX`）の `CraftDef` を持つ
+  （`GameBalance.CreateTownBuildingCrafts`。素材は建物と同じ `needItems`、`onCraftEndExpressions` の頭が `CreateTownBuilding()`）。
+  足りれば窓を閉じて暗転し、素材を引いて、`AssignedWgo.Data.CraftComponent.ProcessInstantCraft` でその製作を 1 回作る →
+  **`WgoData.OnCraftStart` が窓を開いた机の上で 1 度鳴る**（`ce.Def.id` が `town_building_craft:…`）。クエストのスクリプトで建てる
+  `TownSystem.StartTownBuildingCraftOnWgoFromScript` も `TryStartCraft` で同じ製作を始める
+- → 制作メニューは町の建物を製作のメモ（`TodoKind.Craft`、レシピの id は `town_building_craft:…`、作る場所は窓を開いた机）として持ち、
+  減らすのは製作と同じ `CraftUnitStartedPatch`。名前・ツールチップだけ頭を外して `TownBuildingDef` で引く（`GameBridge.TownBuildingIdOf`）
+
 ## マウスの下のレシピを引く（登録キー）
 
 - ゲームの UI は uGUI ＋ EventSystem（入力は `RewiredStandaloneInputModule`）。`EventSystem.current.RaycastAll` に
   `Input.mousePosition` の `PointerEventData` を渡すと、当たった部品が手前から返る。親を `GetComponentInParent` で辿って部品を見分ける
 - 部品と、その `data`（`LazyWidget<T>` の protected な field）:
-  `UIBuildingWidget`（`UIBuildingWidgetData.BuildData`）・`UICraftPreviewItemCell`（`UICraftPreviewItemCellData.CraftDef` / `WgoData` /
+  `UIBuildingWidget`（`UIBuildingWidgetData.BuildData`）・`UITownBuildingWidget`（`UITownBuildingWidgetData.TownBuildingDef`。窓を開いた机は
+  `GetComponentInParent<UITownBuildingWindow>()` の `data.AssignedWgo.Data`）・`UICraftPreviewItemCell`（`UICraftPreviewItemCellData.CraftDef` / `WgoData` /
   `IsTab` / `IsUnknown`）・`UICraftQueueElementWidget`（`UICraftQueueElementWidgetData.CraftQueueElement`（`CraftElementBase.Def` / `Count`）・
   `WgoData`）・`UICraftWidget`（`UIBaseCraftWidgetData.CraftDefinition` / `CraftsCount`）・`UIBaseCraftSelectionWindow`（窓全体）
 - レシピの素材は `CraftDefBase.needItems`。耐久を使う道具は `CraftDef.hasDurabilityUseItem` / `durabilityUseItem`

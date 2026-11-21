@@ -23,6 +23,19 @@ namespace CraftTodo
         }
     }
 
+    /// <summary>
+    /// 町の建物の窓の行を押したとき（UITownBuildingWidget.OnPress。素材のセルを押しても来る）。足りなければ、設定 AddOnBlockedClick の
+    /// ときだけメモへ（ゲームは足りないと何もしない）。建ったときに減らすのはここではなく CraftUnitStartedPatch（建てる製作が始まったとき）。
+    /// </summary>
+    [HarmonyPatch(typeof(UITownBuildingWidget), "OnPress", new Type[0])]
+    internal static class TownBuildingWidgetPressPatch
+    {
+        private static void Prefix(UITownBuildingWidget __instance, UITownBuildingWidgetData ___data)
+        {
+            Hooks.Guard("町の建物の行の押下", () => Hooks.OnTownBuildingPressed(__instance, ___data));
+        }
+    }
+
     /// <summary>建物を設置したとき（BuildPointer.TryBuildActionInput が true を返した）。そのメモを 1 減らす。</summary>
     [HarmonyPatch(typeof(BuildPointer), nameof(BuildPointer.TryBuildActionInput), new Type[0])]
     internal static class BuildPlacedPatch
@@ -67,6 +80,8 @@ namespace CraftTodo
     /// 窓の「作る」・「キューに追加する」・キューの続き・ゾンビの作業のどれで始まっても、ここを 1 回分ずつ通る
     /// （CraftComponent.Start と、キューを通らない製作の ProcessInstantCraft）。
     /// 0.4.1 までは窓の「作る」（OnStartCraftPressed）で減らしていたので、キューから作ると減らなかった。
+    /// 町の建物（0.7.1〜）もここで減る: ゲームは建てるとき「town_building_craft:＋建物の id」の製作を、窓を開いた机の上で即時に作る
+    /// （TownBuildingPlaceInteractionHandler・Flow_OpenTownBuildingWindow の OnBuildPressed → ProcessInstantCraft）。
     /// </summary>
     [HarmonyPatch(typeof(WgoData), nameof(WgoData.OnCraftStart), new[] { typeof(CraftElementBase) })]
     internal static class CraftUnitStartedPatch
@@ -166,6 +181,20 @@ namespace CraftTodo
             else if (Plugin.Instance.AddOnBlockedClick.Value)
             {
                 Plugin.Instance.AddTodo(entry);
+            }
+        }
+
+        /// <summary>町の建物の行。足りるかはゲームの窓と同じ在庫（窓の MultiInventory。持ち物＋いまいるゾーン）で見る。</summary>
+        public static void OnTownBuildingPressed(UITownBuildingWidget widget, UITownBuildingWidgetData data)
+        {
+            if (!Plugin.Instance.AddOnBlockedClick.Value || data?.TownBuildingDef == null || data.MultiInventory == null)
+            {
+                return;
+            }
+
+            if (!data.MultiInventory.HasItemsById(data.GetCurrentNeedItems()))
+            {
+                Plugin.Instance.AddTodo(GameBridge.FromTownBuilding(data.TownBuildingDef, GameBridge.StationOfTownBuildingWidget(widget)));
             }
         }
 
