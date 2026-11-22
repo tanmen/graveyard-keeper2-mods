@@ -1,0 +1,123 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Quick Stash の mod 本体（BepInEx 5 のプラグイン）。ゲームの DLL と、ゲームに同梱の BepInEx を直接参照してビルドし、
+    ゲームに依存しない部分（../QuickStash.Core）のソースを取り込んで DLL 1 本にする。
+
+    ゲームの導入先（GraveyardKeeper2.exe のあるフォルダ）は次のどれかで渡す（上が優先）:
+      1. msbuild のプロパティ GameDir（コマンドラインの -p:GameDir=...）
+      2. ../Game.local.props（Game.local.props.example を写して作る。gitignore 済み）
+      3. ユーザー環境変数 GK2_GAMEDIR
+    どれも無ければ、このプロジェクトのビルドはエラーで止まる（Core とテストはゲーム無しでビルドできる）。
+
+    -p:DeployToGame=true を付けたときだけ、ゲームの「ローカルの Mod」の置き場（セーブデータの Mods/Code/QuickStash/）に
+    Workshop のアイテムと同じ形（modinfo.json と BepInEx/plugins/QuickStash/）で置く。ゲームは次の起動時に
+    それを <ゲーム>/BepInEx/plugins/ へ写して読み込む（README_MODDING.txt の 2 と 6）。
+    ⚠ Claude デスクトップの中から動かすと AppData\LocalLow が仮想化されてゲームから見えない。その場合は
+    -p:ModsCodePath=\\localhost\C$\Users\<ユーザー>\AppData\LocalLow\Lazy Bear Games\Graveyard Keeper 2\Mods\Code を渡す。
+  -->
+
+  <Import Project="..\Game.local.props" Condition="Exists('..\Game.local.props')" />
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <OutputType>Library</OutputType>
+    <AssemblyName>QuickStash</AssemblyName>
+    <RootNamespace>QuickStash</RootNamespace>
+    <Version>0.2.0</Version>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- ゲームの DLL の版の不一致（Unity の依存）で出る警告は止めない程度に抑える -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
+    <GameDir Condition="'$(GameDir)' == ''">$([System.Environment]::GetEnvironmentVariable('GK2_GAMEDIR', 'EnvironmentVariableTarget.User'))</GameDir>
+    <ManagedPath>$(GameDir)\GraveyardKeeper2_Data\Managed</ManagedPath>
+    <BepInExCorePath>$(GameDir)\BepInEx\core</BepInExCorePath>
+    <ModsCodePath Condition="'$(ModsCodePath)' == ''">$(USERPROFILE)\AppData\LocalLow\Lazy Bear Games\Graveyard Keeper 2\Mods\Code</ModsCodePath>
+    <ModId>quickstash</ModId>
+    <ModName>Quick Stash</ModName>
+    <!--
+      配る DLL と PDB に手元のパス（C:\Users\<ユーザー名>\...）を残さない。リポジトリの根を /_/ に置き換える。
+      SourceLink（.NET SDK が既定で入れる）は PDB に手元のパスとリポジトリの URL を書くので切る
+    -->
+    <RepoRoot>$([MSBuild]::EnsureTrailingSlash($([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))))</RepoRoot>
+    <PathMap>$(RepoRoot)=/_/</PathMap>
+    <EnableSourceLink>false</EnableSourceLink>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\QuickStash.Core\**\*.cs" Exclude="..\QuickStash.Core\obj\**;..\QuickStash.Core\bin\**" Link="Core\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- net472 の参照アセンブリ（Targeting Pack が無いマシンでもビルドできるように） -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <GameReference Include="Assembly-CSharp" />
+    <GameReference Include="LazyBearTechnology" />
+    <GameReference Include="UnityEngine" />
+    <GameReference Include="UnityEngine.CoreModule" />
+    <GameReference Include="UnityEngine.UI" />
+    <GameReference Include="UnityEngine.UIModule" />
+    <GameReference Include="UnityEngine.InputLegacyModule" />
+    <GameReference Include="Unity.TextMeshPro" />
+    <!-- 置いてある物の見た目（Wgo）の基底クラス SerializedMonoBehaviour がここにある。Wgo の部品の口を使うのに要る -->
+    <GameReference Include="Sirenix.Serialization" />
+    <Reference Include="@(GameReference)">
+      <HintPath>$(ManagedPath)\%(Identity).dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- ゲームに同梱の BepInEx 5.4.23.5。配る item には入れない（README_MODDING.txt の 2 の Rules） -->
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCorePath)\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCorePath)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CheckGameDir" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="'$(GameDir)' == '' Or !Exists('$(ManagedPath)\Assembly-CSharp.dll')"
+           Text="ゲームの導入先が見つからない（GameDir='$(GameDir)'）。QuickStash/Game.local.props.example を写して Game.local.props を作るか、-p:GameDir=... を渡す" />
+    <Error Condition="!Exists('$(BepInExCorePath)\BepInEx.dll')"
+           Text="ゲームに同梱の BepInEx が見つからない（$(BepInExCorePath)\BepInEx.dll）。Steam 版は GraveyardKeeper2.exe の隣に BepInEx を同梱している" />
+  </Target>
+
+  <!-- 版は上の Version の 1 か所にだけ書く。プラグインの属性（BuildInfo.Version）と modinfo.json はここから作る -->
+  <Target Name="GenerateBuildInfo" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <BuildInfoFile>$(IntermediateOutputPath)BuildInfo.g.cs</BuildInfoFile>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(BuildInfoFile)" Lines="namespace QuickStash { internal static class BuildInfo { public const string Version = &quot;$(Version)&quot;%3B } }" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Include="$(BuildInfoFile)" />
+      <FileWrites Include="$(BuildInfoFile)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="DeployToGameMods" AfterTargets="Build" Condition="'$(DeployToGame)' == 'true'">
+    <PropertyGroup>
+      <ItemDir>$(ModsCodePath)\$(AssemblyName)</ItemDir>
+      <PluginDir>$(ItemDir)\BepInEx\plugins\$(AssemblyName)</PluginDir>
+      <ModInfoJson>{
+  "schemaVersion": 1,
+  "id": "$(ModId)",
+  "name": "$(ModName)",
+  "version": "$(Version)"
+}</ModInfoJson>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(ModsCodePath)')"
+           Text="ゲームの Mods/Code が見つからない（$(ModsCodePath)）。ゲームを 1 度起動するか、-p:ModsCodePath=... を渡す" />
+    <Message Text="配置: $(ItemDir)（modinfo.json と BepInEx/plugins/$(AssemblyName)/）" Importance="high" />
+    <MakeDir Directories="$(PluginDir)" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(PluginDir)" />
+    <WriteLinesToFile File="$(ItemDir)\modinfo.json" Lines="$(ModInfoJson)" Overwrite="true" />
+  </Target>
+
+</Project>

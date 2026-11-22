@@ -1,0 +1,9 @@
+<Project>
+  <!--
+    手元のゲームの導入先。このファイルを同じフォルダに Game.local.props という名前で写し、パスを自分の環境に合わせる。
+    Game.local.props は gitignore 済み（コミットしない）。
+  -->
+  <PropertyGroup>
+    <GameDir>D:\SteamLibrary\steamapps\common\Graveyard Keeper 2</GameDir>
+  </PropertyGroup>
+</Project>

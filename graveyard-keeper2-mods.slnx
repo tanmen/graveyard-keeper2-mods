@@ -9,4 +9,9 @@
     <Project Path="StockFinder/StockFinder.Core.Tests/StockFinder.Core.Tests.csproj" />
     <Project Path="StockFinder/StockFinder/StockFinder.csproj" />
   </Folder>
+  <Folder Name="/QuickStash/">
+    <Project Path="QuickStash/QuickStash.Core/QuickStash.Core.csproj" />
+    <Project Path="QuickStash/QuickStash.Core.Tests/QuickStash.Core.Tests.csproj" />
+    <Project Path="QuickStash/QuickStash/QuickStash.csproj" />
+  </Folder>
 </Solution>
