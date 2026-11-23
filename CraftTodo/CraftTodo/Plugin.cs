@@ -17,6 +17,7 @@ namespace CraftTodo
     /// 設定 AddOnBlockedClick を入れると、素材の足りない行・灰色の「作る」を押したときにも足す。
     /// </summary>
     [BepInPlugin(PluginGuid, PluginName, BuildInfo.Version)]
+    [BepInDependency(ModsMenuPage.ModsMenuGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string PluginGuid = "tanmen.gk2.crafttodo";
@@ -72,6 +73,7 @@ namespace CraftTodo
 
             ApplyPatches();
             gameObject.AddComponent<TodoOverlay>();
+            ModsMenuPage.TryRegister(this);
             Log.LogInfo($"{PluginName} {BuildInfo.Version} を読み込んだ");
         }
 

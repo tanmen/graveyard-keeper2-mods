@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/ModsMenu/">
+    <Project Path="ModsMenu/ModsMenu.Core/ModsMenu.Core.csproj" />
+    <Project Path="ModsMenu/ModsMenu.Core.Tests/ModsMenu.Core.Tests.csproj" />
+    <Project Path="ModsMenu/ModsMenu/ModsMenu.csproj" />
+  </Folder>
   <Folder Name="/CraftTodo/">
     <Project Path="CraftTodo/CraftTodo.Core/CraftTodo.Core.csproj" />
     <Project Path="CraftTodo/CraftTodo.Core.Tests/CraftTodo.Core.Tests.csproj" />

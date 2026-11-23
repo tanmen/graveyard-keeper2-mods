@@ -14,6 +14,7 @@ namespace QuickStash
     /// 所持品のセルの上でホイールを押し込むと、その品をロックする（もう一度押すと外す）。ロックした品は、しまうキーを押しても残る。
     /// </summary>
     [BepInPlugin(PluginGuid, PluginName, BuildInfo.Version)]
+    [BepInDependency(ModsMenuPage.ModsMenuGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string PluginGuid = "tanmen.gk2.quickstash";
@@ -42,6 +43,7 @@ namespace QuickStash
             BindConfig();
             Locks = new LockStorage(Path.Combine(Paths.ConfigPath, "QuickStash"), Log);
             ApplyPatches();
+            ModsMenuPage.TryRegister(this);
             Log.LogInfo($"{PluginName} {BuildInfo.Version} を読み込んだ（しまうキー {StashKey.Value}・ロックのキー {LockKey.Value}）");
         }
 
@@ -64,6 +66,12 @@ namespace QuickStash
             try
             {
                 Locks.Tick();
+
+                // Mods の窓でキーを選んでいる間（と閉じた直後）は、押したキーでしまったりロックしたりしない
+                if (ModsMenuPage.BlocksHotkeys)
+                {
+                    return;
+                }
 
                 if (KeyInput.WasPressed(LockKey.Value))
                 {

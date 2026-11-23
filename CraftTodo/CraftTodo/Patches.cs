@@ -122,19 +122,8 @@ namespace CraftTodo
         }
     }
 
-    /// <summary>
-    /// ESC の窓（ポーズ。UIGamePauseWindow）を開く前に、「操作方法」の下へ「制作メニュー」のボタンを足す（1 度だけ）。
-    /// ゲームが「不具合を報告」のボタンを足すのと同じく、窓のボタンを写して作る。押すと設定の窓（SettingsWindow）を開き、
-    /// 閉じると ESC の窓に戻る（ゲームの「設定」と同じ流れ）。Init ではなく Open に差すのは、窓の Init が mod より先に済んでいても足せるように。
-    /// </summary>
-    [HarmonyPatch(typeof(UIGamePauseWindow), nameof(UIGamePauseWindow.Open), new[] { typeof(LazyWidgetDataBase) })]
-    internal static class PauseWindowOpenPatch
-    {
-        private static void Prefix(UIGamePauseWindow __instance, LazyButton ___controlsBtn)
-        {
-            Hooks.Guard("ESC の窓のボタン", () => PauseMenuButton.Ensure(__instance, ___controlsBtn));
-        }
-    }
+    // ESC の窓の「制作メニュー」のボタンと設定の窓（0.7.0〜0.7.5）は、0.8.0 で Mods Menu（../../ModsMenu）へ移した。
+    // 設定の行は ModsMenuPage.cs で Mods Menu のタブとして登録する。
 
     internal static class Hooks
     {

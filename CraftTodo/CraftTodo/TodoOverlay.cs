@@ -308,8 +308,8 @@ namespace CraftTodo
 
         private void HandleKeys(Plugin plugin)
         {
-            // 設定の窓を開いている間（キーを選んでいる間も）は、ここのキーを鳴らさない
-            if (SettingsWindow.BlocksHotkeys)
+            // Mods の窓を開いている間（キーを選んでいる間も）は、ここのキーを鳴らさない
+            if (ModsMenuPage.BlocksHotkeys)
             {
                 return;
             }

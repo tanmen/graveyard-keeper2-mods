@@ -12,6 +12,7 @@ namespace StockFinder
     /// 合計は所持品と宝箱の全部。宝箱は、ゲームが所持品の窓でまとめて開く収納（WGODef.OpenInMultiInventory）。
     /// </summary>
     [BepInPlugin(PluginGuid, PluginName, BuildInfo.Version)]
+    [BepInDependency(ModsMenuPage.ModsMenuGuid, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string PluginGuid = "tanmen.gk2.stockfinder";
@@ -33,6 +34,7 @@ namespace StockFinder
             Log = Logger;
             BindConfig();
             ApplyPatches();
+            ModsMenuPage.TryRegister(this);
             Log.LogInfo($"{PluginName} {BuildInfo.Version} を読み込んだ（並べ方 {Layout.Value}・行の上限 {MaxRows.Value}）");
         }
 

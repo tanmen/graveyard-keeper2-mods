@@ -66,12 +66,7 @@ namespace CraftTodo
 
         public static string StackingOff => Japanese ? "件ごとに数える" : "Counting each";
 
-        // ---- 設定の窓（ESC の窓の「制作メニュー」から開く。並びは 2026-11-21 に本人が図で決めた）----
-
-        /// <summary>ESC の窓（ポーズ）に足すボタン。</summary>
-        public static string PauseButton => Header;
-
-        public static string SettingsTitle => Japanese ? "制作メニューの設定" : "Craft menu settings";
+        // ---- Mods Menu の Craft Todo のタブ（ESC の窓の「Mods」から開く。0.7.0〜0.7.5 の設定の窓の行。並びは 2026-11-21 に本人が図で決めた）----
 
         // ⚠ ゲームの日本語の書体に無い字がある（0.7.0 で「・」と「縦」が描かれなかった。どちらもゲームの訳文に 1 度も出てこない字）。
         // 文言を足すときは、ゲームの訳文に出てくる字で書く
@@ -110,17 +105,15 @@ namespace CraftTodo
 
         public static string ClearKey => Japanese ? "全部消す" : "Clear all";
 
-        /// <summary>設定の窓の下の段の、OK の左のボタン。</summary>
+        /// <summary>タブの下の段の、OK の左のボタン。</summary>
         public static string ClearButton => Japanese ? "メモを全部消す" : "Clear all";
 
         /// <summary>「メモを全部消す」を 1 度押したとき（もう一度押すと消す）。ボタンの幅が変わらないよう、字数をそろえる。</summary>
         public static string ClearConfirm => Japanese ? "もう一度で消す" : "Press again";
 
-        public static string PressKey => Japanese ? "キーを押す…（Esc でやめる）" : "Press a key... (Esc cancels)";
-
         public static string NoKey => Japanese ? "なし" : "None";
 
-        /// <summary>キーの名前（設定の窓・帯の右端）。修飾キーを先に「+」でつなぐ。マウスのボタンは言葉にする。</summary>
+        /// <summary>キーの名前（帯の右端）。修飾キーを先に「+」でつなぐ。マウスのボタンは言葉にする（Mods Menu の窓の欄と同じ書き方）。</summary>
         public static string KeyName(BepInEx.Configuration.KeyboardShortcut shortcut)
         {
             if (shortcut.MainKey == UnityEngine.KeyCode.None)

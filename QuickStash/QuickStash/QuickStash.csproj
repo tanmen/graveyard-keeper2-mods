@@ -26,7 +26,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>QuickStash</AssemblyName>
     <RootNamespace>QuickStash</RootNamespace>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- ゲームの DLL の版の不一致（Unity の依存）で出る警告は止めない程度に抑える -->
     <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
@@ -54,6 +54,18 @@
   <ItemGroup>
     <!-- net472 の参照アセンブリ（Targeting Pack が無いマシンでもビルドできるように） -->
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Mods Menu（ESC の窓の「Mods」）にタブを登録するための参照。任意の依存なので DLL は写さない（Private=false。配る item にも入らない）。
+      Mods Menu が入っていないときは ModsMenuPage が何もしない。
+      -p:DeployToGame=true はこの参照には渡さない（この mod を配置しても Mods Menu は配置しない。Mods Menu は ModsMenu.csproj を直に配置する）
+    -->
+    <ProjectReference Include="..\..\ModsMenu\ModsMenu\ModsMenu.csproj">
+      <Private>false</Private>
+      <GlobalPropertiesToRemove>DeployToGame</GlobalPropertiesToRemove>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
