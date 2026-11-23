@@ -22,6 +22,13 @@ namespace TradeFinder
             public string ShopId;
 
             public List<VendorTier> Tiers;
+
+            /// <summary>最後に引いた居る場所（null は分からない）と、その引き方（ログ用）と、引いた時刻（Time.unscaledTime。負ならまだ引いていない）。</summary>
+            public string Place;
+
+            public string PlaceHow;
+
+            public float PlaceAt = -1f;
         }
 
         private static List<VendorStatic> statics;
@@ -52,7 +59,7 @@ namespace TradeFinder
                     continue;
                 }
 
-                facts.Add(new VendorFacts(vendor.Id, name, built ? PlaceOf(vendor.WgoId) : null, built, live.CurTier, vendor.Tiers));
+                facts.Add(new VendorFacts(vendor.Id, name, built ? PlaceOf(vendor) : null, built, live.CurTier, vendor.Tiers));
             }
 
             LogFirst(facts);
@@ -83,34 +90,184 @@ namespace TradeFinder
             return UnityEngine.Mathf.RoundToInt(UnityEngine.Mathf.Round(price * 100f) / 100f);
         }
 
-        /// <summary>商人の居る場所の名前。商人の絵の id（VendorDef.icon。NPC と町の店の店番の物の id）で世界の物を引き、そのゾーンの名前。</summary>
-        private static string PlaceOf(string wgoId)
+        /// <summary>
+        /// 商人の居る場所の名前。商人の絵の id（VendorDef.icon。NPC と町の店の店番の物の id）で世界の物を引き、その物の居るゾーンの名前。
+        /// 引けなければ null（世界に物が無い商人も null。2026-11-22 のセーブでは司祭・ハロルドの物が世界に無かった）。
+        /// NPC は歩くので、引いた結果は <see cref="PlaceTtl"/> 秒だけ覚えておく（ツールチップを出すたびに全員を引き直さない）。
+        /// </summary>
+        private static string PlaceOf(VendorStatic vendor)
         {
-            if (string.IsNullOrEmpty(wgoId))
+            float now = UnityEngine.Time.unscaledTime;
+            if (vendor.PlaceAt >= 0f && now - vendor.PlaceAt < PlaceTtl)
             {
+                return vendor.Place;
+            }
+
+            vendor.Place = FindPlace(vendor, out vendor.PlaceHow);
+            vendor.PlaceAt = now;
+            return vendor.Place;
+        }
+
+        private const float PlaceTtl = 10f;
+
+        /// <summary>
+        /// 物のゾーン → 物の位置を含むゾーン → 町の店ならその建物 → 町の範囲、の順に引く。根拠は TradeFinder/docs/game-api-notes.md「居る場所」。
+        /// <paramref name="how"/> はログ用（どの引き方で何が取れたか）。
+        /// </summary>
+        private static string FindPlace(VendorStatic vendor, out string how)
+        {
+            WorldData world = MainGame.WorldData;
+            if (world == null || string.IsNullOrEmpty(vendor.WgoId))
+            {
+                how = "世界がまだ無い";
                 return null;
             }
 
-            List<WgoData> found = MainGame.WorldData?.GetWgoDataList(wgoId);
-            if (found == null)
+            List<WgoData> found = world.GetWgoDataList(vendor.WgoId);
+            if (found == null || found.Count == 0)
             {
+                how = $"物 0（{vendor.WgoId}）";
                 return null;
             }
 
+            var notes = new List<string>();
             foreach (WgoData data in found)
             {
-                WorldZoneData zone = data?.WorldZoneData;
-                if (zone != null && !string.IsNullOrEmpty(zone.id))
+                if (data == null)
                 {
-                    string name = Strings.ZoneName(zone.id);
-                    if (!string.IsNullOrEmpty(name))
+                    continue;
+                }
+
+                string name = ZoneOf(data, world, out string zoneHow);
+                notes.Add($"{data.WorldId} ({data.Position.x:0.#}, {data.Position.z:0.#}) {zoneHow}");
+                if (name != null)
+                {
+                    how = $"物 {found.Count}・" + string.Join(" / ", notes);
+                    return name;
+                }
+
+                WgoData building = data.LinkedToTownBuildingUniqueId != null ? world.GetWgoData(data.LinkedToTownBuildingUniqueId) : null;
+                if (building != null)
+                {
+                    name = ZoneOf(building, world, out string buildingHow);
+                    notes.Add($"建物 {building.WorldId} ({building.Position.x:0.#}, {building.Position.z:0.#}) {buildingHow}");
+                    if (name != null)
                     {
+                        how = $"物 {found.Count}・" + string.Join(" / ", notes);
                         return name;
                     }
                 }
             }
 
+            how = $"物 {found.Count}・" + string.Join(" / ", notes);
             return null;
+        }
+
+        /// <summary>1 つの物の居るゾーンの名前。右上の地名の枠と同じく、見せないゾーン（displayType Hidden）は飛ばす。</summary>
+        private static string ZoneOf(WgoData data, WorldData world, out string how)
+        {
+            // 1. 物に結び付いたゾーン。ゲームは入れ物型（WorldZoneType.Default）で動いているゾーンにしか物を結び付けない（WorldZoneData.TryAddWgoData）
+            WorldZoneData own = data.WorldZoneData;
+            string name = NameOf(own);
+            if (name != null)
+            {
+                how = "ゾーン " + own.id;
+                return name;
+            }
+
+            // 2. 物の位置を含むゾーン（入れ物型でないゾーンも）。入れ物型を先に、入れ物型どうしは中心の近い方（プレイヤーのゾーンの決め方と同じ）
+            GameSceneData scene = world.GetGameSceneDataById(data.WorldId);
+            UnityEngine.Vector2 point = new UnityEngine.Vector2(data.Position.x, data.Position.z);
+            WorldZoneData best = null;
+            int zones = 0;
+            if (scene?.worldZones != null)
+            {
+                zones = scene.worldZones.Count;
+                foreach (WorldZoneData zone in scene.worldZones)
+                {
+                    if (NameOf(zone) == null || !zone.wholeZoneRect.Contains(point))
+                    {
+                        continue;
+                    }
+
+                    if (best == null || Better(zone, best, data.Position))
+                    {
+                        best = zone;
+                    }
+                }
+            }
+
+            if (best != null)
+            {
+                how = $"ゾーン {(own == null ? "空" : own.id)} → 位置で {best.id}（{best.worldZoneType}）";
+                return NameOf(best);
+            }
+
+            // 3. 町（TownZone。右上の枠は町の中なら町と出す）。当たり判定は読み込まれている場面にしか無い
+            if (InTown(data.Position))
+            {
+                how = $"ゾーン {(own == null ? "空" : own.id)} → 位置のゾーン無し（{zones} 個中）→ 町の範囲";
+                return Strings.ZoneName("town");
+            }
+
+            how = $"ゾーン {(own == null ? "空" : own.id)} → 位置のゾーン無し（{zones} 個中）・町の範囲の外";
+            return null;
+        }
+
+        private static bool Better(WorldZoneData zone, WorldZoneData best, UnityEngine.Vector3 position)
+        {
+            bool container = zone.worldZoneType == WorldZoneData.WorldZoneType.Default;
+            bool bestContainer = best.worldZoneType == WorldZoneData.WorldZoneType.Default;
+            if (container != bestContainer)
+            {
+                return container;
+            }
+
+            return UnityEngine.Vector3.Distance(zone.Center, position) < UnityEngine.Vector3.Distance(best.Center, position);
+        }
+
+        /// <summary>ゾーンの名前（訳文 wz_&lt;id&gt;）。見せないゾーン・訳文の無いゾーンは null。</summary>
+        private static string NameOf(WorldZoneData zone)
+        {
+            if (zone == null || string.IsNullOrEmpty(zone.id))
+            {
+                return null;
+            }
+
+            try
+            {
+                if (zone.Definition != null && zone.Definition.displayType == WorldZoneDef.DisplayType.Hidden)
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+                // 定義が引けなくても名前は出す
+            }
+
+            string name = Strings.ZoneName(zone.id);
+            return string.IsNullOrEmpty(name) ? null : name;
+        }
+
+        private static bool InTown(UnityEngine.Vector3 position)
+        {
+            try
+            {
+                foreach (TownZone town in UnityEngine.Object.FindObjectsByType<TownZone>(UnityEngine.FindObjectsSortMode.None))
+                {
+                    if (town != null && town.Collider != null && town.Collider.bounds.Contains(position))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // 町の当たり判定が引けなければ町とは言わない
+            }
+
+            return false;
         }
 
         private static List<VendorStatic> Statics()
@@ -217,6 +374,12 @@ namespace TradeFinder
             loggedFirst = true;
             Plugin.Log.LogInfo("商人: " + string.Join(" / ", facts.Select(f =>
                 $"{f.Name}（{f.Id}・段階 {f.CurrentTier}・{(f.Built ? "場所 " + (f.Place ?? "不明") : "未建設")}）")));
+
+            // 居る場所をどう引いたか（建てた商人だけ。未建設の店は引かない）
+            foreach (VendorStatic vendor in Statics().Where(v => v.PlaceAt >= 0f))
+            {
+                Plugin.Log.LogInfo($"場所の引き方: {vendor.Id} → {vendor.Place ?? "不明"}（{vendor.PlaceHow}）");
+            }
         }
     }
 }

@@ -57,9 +57,21 @@ bool `lockedByDefaultInOrdersWindow`・`List<VendorTierData>`）を候補の位�
   `UpdateTownBuildingVendor` が `KnowledgeSystem.UnlockVendorForOrders(vendorId)` を呼ぶ（注文の窓に出す印）。
   `lockedByDefaultInOrdersWindow` でない商人は新しいゲームの時点でこの印が付く → **町の店（`TownBuildingDef.vendorId` に出てくる商人）は、
   この印が無ければ未建設**（`KnowledgeSystem.IsVendorForOrdersUnlocked`。ほかにこの印を付ける所は無い）
-- 居る場所: `MainGame.WorldData.GetWgoDataList(商人の icon)` の物の `WorldZoneData`（`id` → 訳文 `wz_<id>`。右上の地名の枠と同じ）。
+- 居る場所: `MainGame.WorldData.GetWgoDataList(商人の icon)` の物の居るゾーン（`id` → 訳文 `wz_<id>`。右上の地名の枠と同じ）。
   ゾーンの名前の例: `wz_herms_store` ヘルムのお店・`wz_warehouse` 町の倉庫・`wz_astrologer_tower` 占星術師の塔・`wz_workshop_conveyor` ジャックの工房・
-  `wz_town` 町・`wz_church` 教会。**NPC の物が icon の id で世界にあるかはゲームで確かめていない**（ログ `商人: …（… 場所 …）` で見る）
+  `wz_town` 町・`wz_church` 教会
+- ⚠ **`WgoData.WorldZoneData` は入れ物型のゾーンにしか付かない**: ゲームが物をゾーンに結び付けるのは `WorldZoneData.TryAddWgoData` だけで、
+  `IsContainer`（`worldZoneType == Default`）かつ `IsActive` のゾーンに限る。入れ物型でないゾーン（`SimpleNotContainer`）や町（`TownZone`。
+  ゾーンのデータではなく場面の当たり判定）に居る物は空のまま。0.1.0 はこれだけを見ていて、18 人中 2 人（ヤヌアリウス → 村の酒場・ガンター →
+  占星術師の塔）しか引けなかった
+- 右上の地名の枠のプレイヤーのゾーンは、当たり判定（レイヤー 17）を真上から下へ撃って決める（`PlayerPhysicalBody.UpdateWorldZone`）:
+  `displayType` が `Hidden` のゾーンは飛ばす → 入れ物型（中心の近い方）→ 入れ物型でないゾーン → 町（`TownZone`。訳文 `town_zone`）。
+  0.1.1 はこれをデータで写す: `GetGameSceneDataById(WorldId).worldZones` のうち `wholeZoneRect` が物の位置（x, z）を含むもの →
+  町の店なら `LinkedToTownBuildingUniqueId` の建物で同じこと → `TownZone.Collider.bounds.Contains(位置)` なら町（`wz_town`）
+- 2026-11-22 14:21 のセーブ（`Steam_1.dat`。型名と項目名つきの UTF-16 BE の直列化。読むだけ）では: ヤヌアリウス・ガンター・ヘルム・商人頭・
+  薬屋の店番（`t_b_apothecary`）の物は場面 `RuinedTemple` にあり、ヘルム・商人頭・薬屋の店番は `worldZoneDataId` が空。
+  **司祭（`npc_bishop`）とハロルド（`npc_woodcarver`）の物は世界に無い**（商人 `vendorSystem` と注文の窓の印 `unlockedVendorsForOrders` にだけ出てくる）。
+  どの条件で世界に出てくるかは調べていない（場面の中身は `StreamingAssets/aa` の Addressables で、`resources.assets` には GameBalance と訳文にしか出てこない）
 
 ## ツールチップの出し直し（キーを押している間だけ出す項目のため）
 

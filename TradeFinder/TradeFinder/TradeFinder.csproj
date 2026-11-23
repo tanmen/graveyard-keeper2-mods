@@ -26,7 +26,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>TradeFinder</AssemblyName>
     <RootNamespace>TradeFinder</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- ゲームの DLL の版の不一致（Unity の依存）で出る警告は止めない程度に抑える -->
     <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);MSB3277</MSBuildWarningsAsMessages>
@@ -76,6 +76,8 @@
     <GameReference Include="UnityEngine.UI" />
     <GameReference Include="UnityEngine.UIModule" />
     <GameReference Include="UnityEngine.InputLegacyModule" />
+    <!-- 町の範囲（TownZone の Collider）を見るため -->
+    <GameReference Include="UnityEngine.PhysicsModule" />
     <GameReference Include="UnityEngine.TextRenderingModule" />
     <GameReference Include="Unity.TextMeshPro" />
     <Reference Include="@(GameReference)">
