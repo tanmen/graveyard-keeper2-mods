@@ -24,7 +24,10 @@ namespace CraftTodo
 
         public const string PlusSign = "+";
 
-        /// <summary>1 件ごとの見出し板の文字:「制作物 ×回数  制作機」。そろったかは色で見せる（文字にしない）。</summary>
+        /// <summary>
+        /// 1 件ごとの見出し板の文字:「制作物 ×回数  制作機」。そろったかは色で見せる（文字にしない）。
+        /// 制作物の名前が制作機の名前と同じ（訳も作る物も無い修理などは制作機の名前を出す: GameBridge.RecipeName）なら制作機は重ねない。
+        /// </summary>
         public static string Title(string recipe, int multiplier, string station)
         {
             string text = recipe;
@@ -33,7 +36,7 @@ namespace CraftTodo
                 text += " " + Times + multiplier;
             }
 
-            if (!string.IsNullOrEmpty(station))
+            if (!string.IsNullOrEmpty(station) && station != recipe)
             {
                 text += "  " + station;
             }

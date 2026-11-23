@@ -389,8 +389,68 @@ namespace CraftTodo
 
         // ---- 名前とアイコン ----
 
-        /// <summary>メモの名前。町の建物は建物の名前（窓の行と同じ。製作の id の文言は無い）。</summary>
-        public static string RecipeName(TodoEntry entry) => Localize(TownBuildingIdOf(entry) ?? entry.RecipeId);
+        /// <summary>
+        /// メモの名前。町の建物は建物の名前（窓の行と同じ。製作の id の文言は無い）。製作は訳があればそれ（ゲームの回数を選ぶ窓の題と同じ）。
+        /// 訳が無ければ作る物の名前（ゲームの技術ツリーの見出し LinkedEntityWidgetData.GetLinkedEntityHeader と同じ。作る物のセルのアイコンと
+        /// ツールチップもこの品）、作る物も無ければ作る場所の名前（ゲームの単発の製作の窓 UISingleCraftWindow の題と同じ）。
+        /// 壊れたハシゴの修理（descent_ladder_forest_repair）は訳も作る物も無く、0.8.0 までは id がそのまま名札に出ていた。
+        /// </summary>
+        public static string RecipeName(TodoEntry entry)
+        {
+            string town = TownBuildingIdOf(entry);
+            if (town != null)
+            {
+                return Localize(town);
+            }
+
+            string id = entry.RecipeId;
+            if (entry.Kind != TodoKind.Craft || string.IsNullOrEmpty(id) || HasLocale(id))
+            {
+                return Localize(id);
+            }
+
+            string from;
+            string name;
+            CraftDefBase craft = null;
+            ItemDef item = null;
+            try
+            {
+                craft = TooltipBridge.CraftOf(id);
+                item = craft == null ? null : TooltipBridge.ResultItemOf(craft);
+            }
+            catch (Exception)
+            {
+                // 引けなければ作る場所の名前へ
+            }
+
+            string station = !string.IsNullOrEmpty(entry.StationDefId) ? entry.StationDefId
+                : craft is CraftDef def && def.craftsIn != null && def.craftsIn.Count > 0 ? def.craftsIn[0] : null;
+            if (item != null)
+            {
+                from = "作る物";
+                name = Header(item);
+            }
+            else if (!string.IsNullOrEmpty(station) && HasLocale(station))
+            {
+                from = "作る場所";
+                name = Localize(station);
+            }
+            else
+            {
+                from = "どれも無いので id";
+                name = id;
+            }
+
+            if (UnnamedRecipesLogged.Add(id))
+            {
+                Plugin.Log.LogInfo($"訳の無いレシピの名札を{from}の名前にした: {id} → {name}");
+            }
+
+            return name;
+        }
+
+        /// <summary>名札の名前の代わりをログに出したレシピ（1 つにつき 1 度だけ出す）。</summary>
+        private static readonly HashSet<string> UnnamedRecipesLogged = new HashSet<string>();
 
         public static string StationName(TodoEntry entry) => string.IsNullOrEmpty(entry.StationDefId) ? string.Empty : Localize(entry.StationDefId);
 
@@ -541,11 +601,25 @@ namespace CraftTodo
                 int craftMax = 0;
                 int buildMax = 0;
                 int tools = 0;
+                int unnamed = 0;
+                int noProduct = 0;
+                string noProductExample = "-";
                 foreach (CraftDef def in balance.craftDefs)
                 {
                     if (def == null)
                     {
                         continue;
+                    }
+
+                    // 名札の名前（RecipeName）の代わりが要る製作の数。町の建物の製作は建物の名前で出すので数えない
+                    if (!string.IsNullOrEmpty(def.id) && !def.id.StartsWith(TownCraftPrefix, StringComparison.Ordinal) && !HasLocale(def.id))
+                    {
+                        unnamed++;
+                        if (def.TryGetResultingItemDef(false) == null)
+                        {
+                            noProduct++;
+                            noProductExample = noProduct == 1 ? def.id : noProductExample;
+                        }
                     }
 
                     int cells = (def.needItems?.Count ?? 0) + (def.hasDurabilityUseItem ? 1 : 0);
@@ -602,7 +676,8 @@ namespace CraftTodo
 
                 return $"レシピの素材のセルの数（材料＋耐久を使う道具）: 製作 {Distribution(crafts)}（最大 {craftMax}: {widestCraft}。道具を別に持つもの {tools} 件）"
                     + $" / 建物 {Distribution(builds)}（最大 {buildMax}: {widestBuild}）"
-                    + $" / 町の建物 {Distribution(towns)}（最大 {townMax}: {widestTown}。建てる製作 {townCrafts} 件）";
+                    + $" / 町の建物 {Distribution(towns)}（最大 {townMax}: {widestTown}。建てる製作 {townCrafts} 件）"
+                    + $" / 訳の無い製作 {unnamed} 件（名札は作る物の名前。作る物も無い {noProduct} 件は作る場所の名前。例: {noProductExample}）";
             }
             catch (Exception e)
             {

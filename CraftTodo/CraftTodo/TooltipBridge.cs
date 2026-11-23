@@ -508,7 +508,8 @@ namespace CraftTodo
             }
         }
 
-        private static CraftDefBase CraftOf(string id)
+        /// <summary>レシピの id から定義（製作・説教・調査。錬金の調合は分かっているものだけ）。名札の名前（GameBridge.RecipeName）も使う。</summary>
+        internal static CraftDefBase CraftOf(string id)
         {
             if (id.StartsWith("mix", StringComparison.Ordinal))
             {
@@ -520,7 +521,7 @@ namespace CraftTodo
         }
 
         /// <summary>レシピが作るアイテム（ゲームの ShowCraftOutputCell と同じく、出力の最初の 1 つ）。</summary>
-        private static ItemDef ResultItemOf(CraftDefBase craft)
+        internal static ItemDef ResultItemOf(CraftDefBase craft)
         {
             if (craft is CraftDef def)
             {
