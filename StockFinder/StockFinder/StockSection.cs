@@ -9,8 +9,8 @@ namespace StockFinder
 {
     /// <summary>
     /// ツールチップの一番下に足す「在庫」の部品: 区切り・「合計 N」・宝箱ごとの表（ゲームの文字の部品 UITooltipTextWidgetData を、合計と表の行ごとに 1 つ）。
-    /// 表は宝箱ごとに 1 行で「場所  宝箱 … 数」（数は右揃え）。所持品は先頭の行、上限を超えた分は「ほか N か所」の 1 行。
-    /// どこにも無ければ「合計 0」だけ。
+    /// 表は場所を見出しの行にして、その下に宝箱ごとの行（字下げした宝箱の名前と、右揃えの数）を並べる（0.2.2〜。形は StockTable）。
+    /// 所持品は先頭の行、上限を超えた分は「ほか N か所」の 1 行。どこにも無ければ「合計 0」だけ。
     /// </summary>
     internal static class StockSection
     {
@@ -19,6 +19,7 @@ namespace StockFinder
         private static List<string> lastTable;
         private static Func<string, float> lastMeasure;
         private static bool loggedFirst;
+        private static bool loggedTooWide;
         private static bool checkedRender;
         private static int errorLogs;
 
@@ -69,7 +70,10 @@ namespace StockFinder
                         digit = 4f;
                     }
 
-                    lines = StockTable.Compose(rows, measure, digit, digit * 2f);
+                    // 見出しの行の右端の詰め物は、数と同じ形の「0」を透明にしたもの（色の書式の内側なら alpha が効く）
+                    string pad = Apply(selected, "<alpha=#00>0");
+                    lines = StockTable.Compose(rows, measure, digit * 2f, digit * 2f, pad);
+                    WarnIfTooWide(item, measure(lines[0]), TooltipStyles.ContentWidth(tooltip));
                     lastTable = lines;
                     lastMeasure = measure;
                     how = $"Table（数字の幅 {digit:0.#}）";
@@ -97,6 +101,7 @@ namespace StockFinder
         /// <summary>
         /// 2 行以上の表を初めて出したあと 1 度だけ、ツールチップの実物の文字の部品の幅を行ごとに読み、こちらの測り方と合っているか・
         /// 全部の行で同じ幅か（1 行ずつ中央に置かれるので、違えば行の頭がずれる）をログに出す。
+        /// 窓の幅を超えて折り返した行は、部品の幅が窓の中身の幅に抑えられるので、ここで「測り方」とずれて見える。
         /// </summary>
         public static void CheckRendered(UITooltip tooltip)
         {
@@ -193,6 +198,18 @@ namespace StockFinder
             loggedFirst = true;
             Plugin.Log.LogInfo($"ツールチップに在庫を初めて足した: {item.id} 合計 {summary.Total}・行 {summary.Rows.Count}"
                 + $"（ほか {summary.HiddenPlaces} か所）・並べ方 {how}");
+        }
+
+        /// <summary>表がツールチップの窓の中身の幅を超える（場所や宝箱の名前がとても長い）と、行が折り返して崩れる。1 度だけ知らせる。</summary>
+        private static void WarnIfTooWide(ItemDef item, float width, float limit)
+        {
+            if (width <= limit || loggedTooWide)
+            {
+                return;
+            }
+
+            loggedTooWide = true;
+            Plugin.Log.LogWarning($"表が窓に収まらない: {item.id} 表の幅 {width:0.#}・窓の中身 {limit:0.#}（行が折り返す）");
         }
 
         private static void LogError(string what, Exception e)

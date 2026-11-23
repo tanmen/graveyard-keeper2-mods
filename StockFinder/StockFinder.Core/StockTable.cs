@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace StockFinder.Core
@@ -16,31 +15,39 @@ namespace StockFinder.Core
             Count = count ?? string.Empty;
         }
 
-        /// <summary>左の列: 場所の名前（所持品・「ほか N か所」の行はここだけに書く）。</summary>
+        /// <summary>場所の名前（所持品・「ほか N か所」の行はここだけに書く）。</summary>
         public string Place { get; }
 
-        /// <summary>中の列: 宝箱の名前（無ければ空）。</summary>
+        /// <summary>宝箱の名前（無ければ空）。</summary>
         public string Container { get; }
 
-        /// <summary>右の列: 数（右揃え）。</summary>
+        /// <summary>数（右揃え）。</summary>
         public string Count { get; }
 
         public bool HasContainer => Container.Length > 0;
     }
 
     /// <summary>
-    /// 表の行ごとの文字を作る。ゲームのツールチップの文字の部品は中央揃えしかせず（揃え方は TextStyle が戻す）、部品ごとに
-    /// 自分の幅で中央に置かれるので、列は TextMeshPro の <c>&lt;pos=…&gt;</c>（行の頭からの位置）で組み、数は
-    /// 「数の列の位置＋数の幅の最大−その数の幅」に置く。こうするとどの行も幅が「数の列の位置＋数の幅の最大」になり、
-    /// 1 行ずつ別の部品にして中央に置かれても、行の頭がそろう。
+    /// 表の行ごとの文字を作る。宝箱のある行は、続けて並ぶ同じ場所をまとめて「場所の名前」だけの見出しの行にし、その下に
+    /// 宝箱ごとの行（字下げした宝箱の名前と、右揃えの数）を並べる。所持品・「ほか」の行は名前と数の 1 行。
+    /// 0.2.1 までは「場所  宝箱 … 数」を 1 行に並べていたが、場所と宝箱の名前が両方長いとツールチップの窓の幅の上限
+    /// （中身 172）を超えて折り返して崩れた（2026-11-23、水）。0.2.1 は収まらないときだけこの形にし、0.2.2 からは本人の選択でいつもこの形。
+    /// <para>
+    /// ゲームのツールチップの文字の部品は中央揃えしかせず（揃え方は TextStyle が戻す）、部品ごとに自分の幅で中央に置かれるので、
+    /// 列は TextMeshPro の <c>&lt;pos=…&gt;</c>（行の頭からの位置）で組み、どの行も幅を「数の右端」にそろえる
+    /// （1 行ずつ別の部品にして中央に置かれても、行の頭がそろうように）。数は「右端−その数の幅」に置く。
+    /// 見出しの行には数が無いので、右端に見えない詰め物（数と同じ形の字を透明にしたもの）を置いて幅を取る
+    /// （TextMeshPro の推奨幅は、空白でない字の右端までしか数えない）。
     /// 1 つの部品に改行で詰めないのは、ゲームの小さい書体の行送りが字の高さより狭く、行が重なるため（2026-11-22 に画面で見た）。
-    /// 位置は、ゲームと同じ書体・大きさで測った幅（<paramref name="measure"/>）から決める。
-    /// 宝箱の列の位置は宝箱のある行の場所の名前だけで決め、所持品・「ほか」の行の長い名前は数の列の位置だけに効かせる。
-    /// 位置は整数に丸める（ドット絵の書体がにじまないように）。
+    /// 位置は、ゲームと同じ書体・大きさで測った幅（measure）から決め、整数に丸める（ドット絵の書体がにじまないように）。
+    /// </para>
     /// </summary>
     public static class StockTable
     {
-        public static List<string> Compose(IReadOnlyList<StockTableRow> rows, Func<string, float> measure, float placeGap, float countGap)
+        /// <param name="indent">宝箱の行の字下げ。</param>
+        /// <param name="countGap">名前の右端の最大と、数の列の間。</param>
+        /// <param name="pad">見出しの行の右端に置く見えない詰め物（書式入り）。</param>
+        public static List<string> Compose(IReadOnlyList<StockTableRow> rows, Func<string, float> measure, float indent, float countGap, string pad)
         {
             var lines = new List<string>();
             if (rows == null || rows.Count == 0)
@@ -48,39 +55,63 @@ namespace StockFinder.Core
                 return lines;
             }
 
-            var widths = rows.Select(r => (Place: measure(r.Place), Container: r.HasContainer ? measure(r.Container) : 0f, Count: measure(r.Count))).ToList();
-
-            float containerX = 0f;
-            bool anyContainer = false;
+            // 見出しの行は Count が null
+            var entries = new List<(float X, string Left, string Count)>();
             for (int i = 0; i < rows.Count; i++)
             {
-                if (rows[i].HasContainer)
+                StockTableRow row = rows[i];
+                if (!row.HasContainer)
                 {
-                    anyContainer = true;
-                    containerX = Math.Max(containerX, widths[i].Place);
+                    entries.Add((0f, row.Place, row.Count));
+                    continue;
                 }
+
+                if (i == 0 || !rows[i - 1].HasContainer || rows[i - 1].Place != row.Place)
+                {
+                    entries.Add((0f, row.Place, null));
+                }
+
+                entries.Add(((float)Math.Ceiling(indent), row.Container, row.Count));
             }
 
-            containerX = anyContainer ? (float)Math.Ceiling(containerX + placeGap) : 0f;
-
+            float padWidth = measure(pad);
             float leftEnd = 0f;
-            for (int i = 0; i < rows.Count; i++)
+            float headerEnd = 0f;
+            float countWidth = 0f;
+            foreach ((float x, string left, string count) in entries)
             {
-                leftEnd = Math.Max(leftEnd, rows[i].HasContainer ? containerX + widths[i].Container : widths[i].Place);
+                if (count == null)
+                {
+                    headerEnd = Math.Max(headerEnd, measure(left));
+                }
+                else
+                {
+                    leftEnd = Math.Max(leftEnd, x + measure(left));
+                    countWidth = Math.Max(countWidth, measure(count));
+                }
             }
 
-            float countX = (float)Math.Ceiling(leftEnd + countGap);
-            float countWidth = widths.Max(w => w.Count);
+            // 数の右端。見出しが一番長ければ、見出しの右端（＋詰め物）まで広げる
+            float right = Math.Max((float)Math.Ceiling(leftEnd + countGap) + countWidth, (float)Math.Ceiling(headerEnd) + padWidth);
 
-            for (int i = 0; i < rows.Count; i++)
+            foreach ((float x, string left, string count) in entries)
             {
-                var text = new StringBuilder(rows[i].Place);
-                if (rows[i].HasContainer)
+                var text = new StringBuilder();
+                if (x > 0f)
                 {
-                    text.Append(Pos(containerX)).Append(rows[i].Container);
+                    text.Append(Pos(x));
                 }
 
-                text.Append(Pos(countX + countWidth - widths[i].Count)).Append(rows[i].Count);
+                text.Append(left);
+                if (count == null)
+                {
+                    text.Append(Pos(right - padWidth)).Append(pad);
+                }
+                else
+                {
+                    text.Append(Pos(right - measure(count))).Append(count);
+                }
+
                 lines.Add(text.ToString());
             }
 

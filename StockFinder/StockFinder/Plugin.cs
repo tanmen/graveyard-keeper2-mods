@@ -46,7 +46,7 @@ namespace StockFinder
                 new ConfigDescription("場所の行の上限（所持品と「ほか N か所」の行も含む。超えた分は「ほか N か所」の 1 行にまとめる）",
                     new AcceptableValueRange<int>(1, 30)));
             Layout = Config.Bind("Display", "Layout", StockLayout.Table,
-                "Table: 宝箱ごとに 1 行で、宝箱の名前と数を列にそろえる / Lines: 宝箱ごとに 1 行で「場所 宝箱: 数」を中央揃え（列がずれるときの逃げ道）");
+                "Table: 場所を見出しの行にして、その下に宝箱ごとに 1 行（宝箱の名前を字下げ・数を右揃え） / Lines: 宝箱ごとに 1 行で「場所 宝箱: 数」を中央揃え（列がずれるときの逃げ道）");
         }
 
         private static void ApplyPatches()
