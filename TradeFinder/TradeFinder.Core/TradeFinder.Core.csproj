@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    どの商人がその品を売る・買い取るかの判定と、ツールチップの行の並べ方・文字の組み立て（ゲームに依存しない部分）。
+    テストはこのプロジェクトを参照し、mod 本体（../TradeFinder/TradeFinder.csproj）は同じソースを自分の DLL に取り込む
+    （mod を DLL 1 本で配るため）。ゲームの Mono で動くよう netstandard2.0 / C# 9 に留める。
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>TradeFinder.Core</RootNamespace>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

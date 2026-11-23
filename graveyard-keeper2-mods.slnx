@@ -19,4 +19,9 @@
     <Project Path="QuickStash/QuickStash.Core.Tests/QuickStash.Core.Tests.csproj" />
     <Project Path="QuickStash/QuickStash/QuickStash.csproj" />
   </Folder>
+  <Folder Name="/TradeFinder/">
+    <Project Path="TradeFinder/TradeFinder.Core/TradeFinder.Core.csproj" />
+    <Project Path="TradeFinder/TradeFinder.Core.Tests/TradeFinder.Core.Tests.csproj" />
+    <Project Path="TradeFinder/TradeFinder/TradeFinder.csproj" />
+  </Folder>
 </Solution>
