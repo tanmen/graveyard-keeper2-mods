@@ -6,18 +6,21 @@
 
     ゲームの導入先（GraveyardKeeper2.exe のあるフォルダ）は次のどれかで渡す（上が優先）:
       1. msbuild のプロパティ GameDir（コマンドラインの -p:GameDir=...）
-      2. ../Game.local.props（Game.local.props.example を写して作る。gitignore 済み）
+      2. リポジトリの根の Game.local.props（根の Game.local.props.example を写して作る。gitignore 済み）。
+         根に無ければ、この mod のフォルダの ../Game.local.props（前の置き場）を読む
       3. ユーザー環境変数 GK2_GAMEDIR
     どれも無ければ、このプロジェクトのビルドはエラーで止まる（Core とテストはゲーム無しでビルドできる）。
 
     -p:DeployToGame=true を付けたときだけ、ゲームの「ローカルの Mod」の置き場（セーブデータの Mods/Code/TradeFinder/）に
     Workshop のアイテムと同じ形（modinfo.json と BepInEx/plugins/TradeFinder/）で置く。ゲームは次の起動時に
     それを <ゲーム>/BepInEx/plugins/ へ写して読み込む（README_MODDING.txt の 2 と 6）。
-    ⚠ Claude デスクトップの中から動かすと AppData\LocalLow が仮想化されてゲームから見えない。その場合は
+    ⚠ MSIX でパッケージされたアプリの中（そのアプリのターミナルなど）から動かすと AppData\LocalLow が仮想化されて
+    ゲームから見えないことがある。その場合は
     -p:ModsCodePath=\\localhost\C$\Users\<ユーザー>\AppData\LocalLow\Lazy Bear Games\Graveyard Keeper 2\Mods\Code を渡す。
   -->
 
-  <Import Project="..\Game.local.props" Condition="Exists('..\Game.local.props')" />
+  <Import Project="..\..\Game.local.props" Condition="Exists('..\..\Game.local.props')" />
+  <Import Project="..\Game.local.props" Condition="!Exists('..\..\Game.local.props') And Exists('..\Game.local.props')" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
@@ -97,7 +100,7 @@
 
   <Target Name="CheckGameDir" BeforeTargets="ResolveAssemblyReferences">
     <Error Condition="'$(GameDir)' == '' Or !Exists('$(ManagedPath)\Assembly-CSharp.dll')"
-           Text="ゲームの導入先が見つからない（GameDir='$(GameDir)'）。TradeFinder/Game.local.props.example を写して Game.local.props を作るか、-p:GameDir=... を渡す" />
+           Text="ゲームの導入先が見つからない（GameDir='$(GameDir)'）。リポジトリの根の Game.local.props.example を写して Game.local.props を作るか、-p:GameDir=... を渡す" />
     <Error Condition="!Exists('$(BepInExCorePath)\BepInEx.dll')"
            Text="ゲームに同梱の BepInEx が見つからない（$(BepInExCorePath)\BepInEx.dll）。Steam 版は GraveyardKeeper2.exe の隣に BepInEx を同梱している" />
   </Target>

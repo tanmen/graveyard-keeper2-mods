@@ -49,7 +49,7 @@ ilspycmd -p -o <出力先> -r "$M" "$M/LazyBearTechnology.dll"
   （`RemoveRequirements`）、`craftableObject.OnCraftStart(複製)` を呼ぶ。キューを通らない製作（`skipQueue`）は `ProcessInstantCraft` が
   1 回分ずつ同じ順に呼ぶ。`ICraftable` を実装しているのは `WgoData` だけなので、**`public void WgoData.OnCraftStart(CraftElementBase ce)` が
   1 回分を作り始めるたびに 1 度鳴る**（窓の「作る」・キュー・ゾンビの作業のどれでも）。始まり済みの要素を続けるときは呼ばれない。
-  メモはここで 1 減らす（0.4.2〜）。0.4.1 までは窓の「作る」で減らしていて、2026-11-21 に本人が「キューに追加する」でパンくずを作ったとき
+  メモはここで 1 減らす（0.4.2〜）。0.4.1 までは窓の「作る」で減らしていて、2026-11-21 に「キューに追加する」でパンくずを作ったとき
   （`addToQueue: False`）メモが減らなかった
 - 完了は private `Finish()`（`UpdateCountOnFinish` → 出来上がりを出して `OnCraftFinish`）。`Made craft output as common item [...]` が出る
 

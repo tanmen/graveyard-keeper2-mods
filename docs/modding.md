@@ -66,23 +66,45 @@ Workshop の item も、手元で試すローカルの mod も同じ形:
 | `<ゲーム>/BepInEx/LogOutput.log` | BepInEx とプラグインのログ。`[GK2.WorkshopSync] Copied plugins/...` で写しが、`Loading [<名前> <版>]` で読み込みが分かる |
 | セーブデータの `Player.log` | Unity のログ。`[Mods]` で始まる行が mod の有効化（`Enabled new code mod '...' (local:<id>)`） |
 
-⚠ **Claude デスクトップの中から `AppData\LocalLow` を読み書きすると、MSIX の仮想化で実ディスクとずれる**
-（書いたものがゲームから見えない・古い版が読める。エラーは出ない）。`\\localhost\C$\Users\<ユーザー>\AppData\LocalLow\...` 越しに扱う。
-ゲームの導入先（`D:\SteamLibrary\...`）は仮想化されない。
+⚠ **MSIX でパッケージされたアプリの中（そのアプリのターミナルなど）から `AppData\LocalLow` を読み書きすると、仮想化で実ディスクとずれる**
+ことがある（書いたものがゲームから見えない・古い版が読める。エラーは出ない）。そのときは `\\localhost\C$\Users\<ユーザー>\AppData\LocalLow\...` 越しに扱う。
+ゲームの導入先（Steam のライブラリ）は仮想化されない。
 
 ⚠ 確かめるために起動したゲームが、そのままセーブ枠を読み込んでプレイ中になっていることがある（2026-11-21、起動から 1 分足らずで
-`Continue Game: slotSteam_1` が出ていた。本人が続きを選んだのか自動なのかは未確認）。セーブの書き込み中に落とさないよう、
+`Continue Game: slotSteam_1` が出ていた。続きを選んだのか自動なのかは未確認）。セーブの書き込み中に落とさないよう、
 プロセスを殺さずゲームの中から終える。
 
 ## 5. Workshop に上げる
 
-ゲームの中の Workshop Creator を使う（README_MODDING.txt の 5・6）。
+ゲームの中の Workshop Creator を使う（README_MODDING.txt の 5・6。窓の作りはゲームの `UISteamWorkshopCreatorWindow` /
+`SteamWorkshopCreatorService` を読んだ。v1.012.9）。
 
-1. セーブデータの `Mods/workshop.json` の `"workshopCreatorMode"` を `true` にする
-2. ゲームの中で Shift+F11 → 上げるフォルダ（`Mods/Code/<name>/` と同じ形）を選ぶ。タグ「Mod」は自動で付く
-3. 任意で `_description.bbcode`（説明）・`_changenote.txt`（変更点）を同じフォルダに置く（`_` で始まる名前は上がらない）
-4. 新しい item は Unlisted で作られる。ページに「BepInEx plugin」と書き、Steam Deck / Linux 向けに起動オプション
-   `WINEDLLOVERRIDES="winhttp=n,b" %command%` を案内する
+1. 上げるフォルダを組む。mod ごとに、セーブデータの `Mods/Upload/<名前>/` に Release のビルドと `<mod>/workshop/` の中身を置く:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts\stage-workshop.ps1
+   ```
+
+   `Mods/Code/` には置かない（手元で試している mod と同じ物が 2 つ読まれないように）。`-Mod CraftTodo` で 1 つだけ組める
+2. セーブデータの `Mods/workshop.json` の `"workshopCreatorMode"` を `true` にする（上げ終わったら `false` に戻してよい）
+3. ゲームの中で Shift+F11 → 作る窓で、題（Workshop のページの題）を入れ、**Type を `Mod` に替え**（窓を開いた既定は `Translation`）、
+   `...` で 1. のフォルダを選んで作る
+4. 新しい item は **Unlisted** で作られる。Steam のページで次を済ませてから Public にする:
+   - Craft Todo・Stock Finder・Quick Stash・Trade Finder は、Owner Controls の Add/Remove Required Items に **Mods Menu** を足す
+     （設定の窓が Mods Menu の中にあるため。任意の依存なので、購読しなくても動く）
+   - 初めて上げるときは Steam Workshop の利用規約への同意が要る（同意するまでページは誰にも見えない）
+5. 版を上げたら `<mod>/workshop/_changenote.txt` を書き換えて 1. から組み直し、Shift+F11 の一覧からその item を選んで上げ直す
+   （上げ直しでは公開の範囲は変わらない）
+
+フォルダの中で決まった名前のもの（どれも Workshop の中身には入らない）:
+
+| 名前 | 中身 |
+| --- | --- |
+| `_description.bbcode` | ページの説明（BBCode。上げるたびに上書きされる）。この repo では英語の下に日本語 |
+| `_changenote.txt` | その回の変更点。無ければ「Initial upload」/「Updated」 |
+| `Thumbnail.png`（`.jpg`） | プレビュー画像。**無いと、フォルダを選んだ時点でゲームが真っ黒の 256x256 を作る**。Steam の上限は 1 MB |
+
+`_` で始まるファイル・フォルダと、`~` で始まるフォルダも上がらない。
 
 ## 6. 参考にした所
 

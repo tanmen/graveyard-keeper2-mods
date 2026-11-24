@@ -32,7 +32,7 @@
 
 - 直書きのキー: `Tab`（植える状態を抜ける）・`E` / `Esc`（休む状態を抜ける）・`Shift+F5`（不具合の報告）・`Shift+F10` / `Shift+F11`（mod の README・Workshop）。
   ホイールの押し込み（`GetMouseButton(2)` / `InputButton.Middle` / `KeyCode.Mouse2`）はゲームのどこにも無い
-- → Q・WASD の近くで空いているのは `Z X C V G`。Quick Stash の既定は 0.1.0 が `Z`、0.2.0 から `G`（本人が試して選んだ）
+- → Q・WASD の近くで空いているのは `Z X C V G`。Quick Stash の既定は 0.1.0 が `Z`、0.2.0 から `G`（試して押しやすい方にした）
 
 ## 品が飛ぶ演出（0.2.0）
 

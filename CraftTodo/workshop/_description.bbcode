@@ -1,0 +1,101 @@
+[h1]Craft Todo[/h1]
+Keep a crafting to-do list on the left side of the screen. [b]Press the mouse wheel on a recipe to add it[/b]; each press adds one more. Every ingredient shows "available / needed" and turns green when you have enough. When you craft it, the entry counts down and disappears.
+
+Made for the walk to your chests: you no longer have to remember what to bring back.
+
+[b]BepInEx plugin.[/b] Subscribe and play. The Steam version of the game already includes BepInEx, so there is nothing else to install.
+
+[h2]How to use[/h2]
+[table]
+[tr][th]To[/th][th]Do[/th][/tr]
+[tr][td]Add a recipe[/td][td]Press the mouse wheel on it. Each press adds 1[/td][/tr]
+[tr][td]Add several at once[/td][td]Pick the amount in the "Craft / Add to queue" window, then press the wheel on that window[/td][/tr]
+[tr][td]Remove one[/td][td]Left Shift + wheel press on the same place[/td][/tr]
+[tr][td]Remove an entry[/td][td]Click the × on its name plate[/td][/tr]
+[tr][td]Collapse / expand an entry[/td][td]Left-click its plate[/td][/tr]
+[tr][td]See what an item is[/td][td]Hover a cell (the game's tooltip)[/td][/tr]
+[tr][td]Hide / show the list[/td][td]F8[/td][/tr]
+[tr][td]Clear the list[/td][td]Ctrl + F8[/td][/tr]
+[tr][td]Shared ingredient counting on / off[/td][td]F9[/td][/tr]
+[/table]
+
+Where the wheel press works: recipes on workbenches and other crafting stations, the craft queue, the amount window, rows of the building desk, and the windows of town buildings. Recipes you have not learned yet ("?") cannot be added.
+
+[h2]Details[/h2]
+[list]
+[*][b]Available[/b] = your inventory + the storage in the same zone as the crafting station (the same range the station uses)
+[*]Entries are grouped by crafting station. A recipe with every ingredient ready shrinks to a green name plate and moves to the bottom
+[*]Crafting counts down one per craft (when the station takes the ingredients), and buildings when you place them
+[*][b]The list is saved with your game.[/b] Loading a save brings back the list as it was at that save
+[*]Shared ingredient counting (off by default): when two entries need the same ingredient, both need the total
+[*]Drawn with the game's own UI art
+[/list]
+
+[h2]Settings[/h2]
+With [b]Mods Menu[/b] installed: Esc → Mods → "Craft Todo" tab (counting, display, position and keys). Without it, edit [i]BepInEx/config/tanmen.gk2.crafttodo.cfg[/i].
+
+The wheel press does not work while you hold another key (such as WASD). Keys can be changed in the settings.
+
+[h2]Steam Deck / Linux[/h2]
+Set the game's launch options to:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]Notes[/h2]
+[list]
+[*]Made for mouse and keyboard: adding uses the mouse wheel (or a key you set)
+[*]Text follows the game language: Japanese or English. Recipe and item names come from the game
+[*]Made for Graveyard Keeper 2 v1.012.9 (Steam)
+[*]Source code (MIT): [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]
+
+[hr][/hr]
+
+[h1]Craft Todo（日本語）[/h1]
+レシピを画面の左に「制作メニュー」として残します。[b]レシピの上でマウスのホイールを押し込むと登録[/b]でき、押すたびに回数が増えます。素材ごとに「使える数 / 要る数」を出し、足りれば緑になります。作ると減り、0 になると消えます。
+
+宝箱まで素材を取りに行く間に、何をいくつ持って戻ればいいかを忘れないためのものです。
+
+[b]BepInEx プラグインです。[/b]購読するだけで入ります（Steam 版のゲームは BepInEx を同梱しているので、ほかに入れるものはありません）。
+
+[h2]使い方[/h2]
+[table]
+[tr][th]したいこと[/th][th]操作[/th][/tr]
+[tr][td]メモに足す[/td][td]レシピの上でホイールを押し込む。押すたびに 1 増える[/td][/tr]
+[tr][td]まとめて足す[/td][td]「作る」「キューに追加する」の窓で回数を選んでから、窓の上でホイールを押し込む[/td][/tr]
+[tr][td]1 つ減らす[/td][td]同じ場所で左 Shift ＋ ホイールの押し込み[/td][/tr]
+[tr][td]メモから外す[/td][td]札の名札の × を押す[/td][/tr]
+[tr][td]札を畳む・開く[/td][td]札を左クリック[/td][/tr]
+[tr][td]品の説明を見る[/td][td]セルにマウスを乗せる（ゲームのツールチップ）[/td][/tr]
+[tr][td]隠す・出す[/td][td]F8[/td][/tr]
+[tr][td]全部消す[/td][td]Ctrl ＋ F8[/td][/tr]
+[tr][td]同じ素材の積み上げのオン・オフ[/td][td]F9[/td][/tr]
+[/table]
+
+ホイールの押し込みが効く場所: 作業台などのレシピ・作業台のキュー・回数を選ぶ窓・建築机の行・町の建物の窓（「大きな家を修理する」など）。まだ覚えていない「？」のレシピは登録できません。
+
+[h2]中身[/h2]
+[list]
+[*][b]使える数[/b]＝持ち物＋作る場所と同じゾーンの収納（作業台が素材を探す範囲と同じ）
+[*]制作機ごとにまとめて並べます。素材が全部そろったレシピは緑の名札だけになって下へ回ります
+[*]製作は 1 回作るたびに（作業台が素材を引いたときに）、建物は設置したときに減ります
+[*][b]メモはセーブと一緒に残ります。[/b]セーブを読み込むと、そのセーブの時点のメモに戻ります
+[*]同じ素材の積み上げ（既定はオフ）: 2 つのメモが同じ素材を使うとき、要る数を合計にします
+[*]見た目はゲームの UI の絵をそのまま使っています
+[/list]
+
+[h2]設定[/h2]
+[b]Mods Menu[/b] を入れると、ESC → Mods →「Craft Todo」のタブで変えられます（数え方・表示・置き場所・キー）。入れなければ [i]BepInEx/config/tanmen.gk2.crafttodo.cfg[/i] を書き換えます。
+
+ほかのキー（移動の WASD など）を押したままだとホイールは効きません。キーは設定で変えられます。
+
+[h2]Steam Deck / Linux[/h2]
+ゲームの起動オプションに次を入れてください:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]そのほか[/h2]
+[list]
+[*]マウスとキーボード向けです。登録はホイール（か設定したキー）で行います
+[*]文言はゲームの言語に合わせて日本語か英語。レシピと品の名前はゲームの訳文です
+[*]Graveyard Keeper 2 v1.012.9（Steam）で作りました
+[*]ソースコード（MIT）: [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]

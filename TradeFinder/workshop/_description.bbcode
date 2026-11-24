@@ -1,0 +1,69 @@
+[h1]Trade Finder[/h1]
+Adds to the bottom of item tooltips [b]which vendors sell the item[/b] and [b]which vendors buy it[/b], with where they are and the price. No more opening every vendor window to check.
+
+[b]BepInEx plugin.[/b] Subscribe and play. The Steam version of the game already includes BepInEx, so there is nothing else to install.
+
+[h2]What it shows[/h2]
+[list]
+[*][b]Buy at[/b]: vendors that sell the item, cheapest first. [b]Sell at[/b]: vendors that buy it, best price first
+[*]Each vendor with the place they are in (the zone name shown at the top right) and the price of one item (the same price as in the vendor window)
+[*]Vendors you cannot trade with yet are shown in faded text: "(not built)" for town shops you have not built, and "(from" followed by the tier) for items a vendor deals in only at a later tier
+[*]A happiness icon for vendors that give happiness when you sell to them
+[*]Items no vendor deals in get nothing added
+[/list]
+
+[h2]Settings[/h2]
+Each part (buy, sell, not-yet-available vendors, place, price, happiness icon) can be set to [b]Always[/b], [b]While holding a key[/b] (Shift, Ctrl or Alt) or [b]Never[/b]. All are "Always" by default.
+
+For example: show buy / sell only while holding Shift, or always show them but hide shops you have not built unless you hold Shift.
+
+With [b]Mods Menu[/b] installed: Esc → Mods → "Trade Finder" tab. Without it, edit [i]BepInEx/config/tanmen.gk2.tradefinder.cfg[/i].
+
+[h2]Steam Deck / Linux[/h2]
+Set the game's launch options to:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]Notes[/h2]
+[list]
+[*]Covers the 18 vendors that deal in items: 6 characters and the 12 town shops
+[*]Vendors that are not in the world yet (for example before the story brings them in) are shown by name only
+[*]Text follows the game language: Japanese or English. Vendor, place and item names come from the game
+[*]Made for Graveyard Keeper 2 v1.012.9 (Steam)
+[*]Source code (MIT): [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]
+
+[hr][/hr]
+
+[h1]Trade Finder（日本語）[/h1]
+アイテムのツールチップの一番下に、[b]その品をどの商人から買えるか[/b]と、[b]どの商人に売れるか[/b]を、居る場所と値段つきで足します。商人の窓を 1 つずつ開けて確かめなくても、どこへ行けばいいかが分かります。
+
+[b]BepInEx プラグインです。[/b]購読するだけで入ります（Steam 版のゲームは BepInEx を同梱しているので、ほかに入れるものはありません）。
+
+[h2]出るもの[/h2]
+[list]
+[*][b]買える[/b]: その品を売っている商人（安い順）。[b]売れる[/b]: その品を買い取る商人（高い順）
+[*]商人ごとに、居る場所（右上の地名の枠と同じ名前）と 1 個の値段（商人の窓のセルと同じ値）
+[*]まだ取引できない所は薄い字: まだ建てていない町の店は「（未建設）」、商人の段階が上がると扱う品なら「（ステージ II から）」
+[*]売ると幸福が入る商人には、幸福のアイコン
+[*]どの商人も扱わない品には何も足しません
+[/list]
+
+[h2]設定[/h2]
+項目ごと（買える・売れる・まだ取引できない所・居る場所・値段・幸福のアイコン）に、[b]いつも[/b] / [b]キーを押している間[/b]（Shift・Ctrl・Alt）/ [b]出さない[/b] から選べます。既定は全部「いつも」。
+
+例: 「Shift を押している間だけ売り買いの場所を出す」「いつも出すが、未建設の店は Shift の間だけ」。
+
+[b]Mods Menu[/b] を入れると、ESC → Mods →「Trade Finder」のタブで変えられます。入れなければ [i]BepInEx/config/tanmen.gk2.tradefinder.cfg[/i] を書き換えます。
+
+[h2]Steam Deck / Linux[/h2]
+ゲームの起動オプションに次を入れてください:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]そのほか[/h2]
+[list]
+[*]品を扱う 18 人の商人が対象です（ヤヌアリウス・ヘルム・商人頭・ガンター・司祭・ハロルドと、町の店 12 軒）
+[*]まだ世界に出てきていない商人（話の進み具合による NPC など）は名前だけ出します
+[*]文言はゲームの言語に合わせて日本語か英語。商人・場所・品の名前はゲームの訳文です
+[*]Graveyard Keeper 2 v1.012.9（Steam）で作りました
+[*]ソースコード（MIT）: [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]

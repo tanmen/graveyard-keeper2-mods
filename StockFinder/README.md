@@ -76,5 +76,5 @@ dotnet test StockFinder/StockFinder.Core.Tests
 dotnet build StockFinder/StockFinder -p:DeployToGame=true
 ```
 
-mod 本体のビルドにはゲームの導入先が要る（`Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）。
+mod 本体のビルドにはゲームの導入先が要る（リポジトリの根の `Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）。
 置き場と ⚠ は [docs/modding.md](../docs/modding.md)。調べたゲームの中身は [docs/game-api-notes.md](docs/game-api-notes.md)。

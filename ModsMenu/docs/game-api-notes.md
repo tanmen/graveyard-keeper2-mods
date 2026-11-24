@@ -10,7 +10,7 @@
   `Init` で手本を隠し、ページごとに `charPageTabButtonPrefab.Copy(帯)` → `Init(ページの名前, 押したとき, 最後のタブか)`
 - 窓は `CharacterWindow_Big.prefab`（bundle `73c8a4dad644a69f711e2f8d7c8588ac.bundle`）と `CharacterWindow_Small.prefab`（`4671f638e362b6a68579f7f98d0a0ead.bundle`）。
   どちらを読むかは `GUIElements.LoadWindowFrom` が画面の大きさの種類（`uiWindowSizeType`）で決める。bundle の名前はハッシュなので版が上がったら引き直す
-  （23,543 個の bundle の `container` のキーを並列で引いて 5 分。scratchpad の `find_prefab.py`）
+  （23,543 個の bundle の `container` のキーを並列で引いて 5 分。引いた道具はリポジトリに入れていない）
 - **`LazyUI.GetWindow<CharacterWindow>()` で、開かずに読み込める**: キャッシュに無ければ `GUIElements.LoadWindowFrom` が
   `Addressables.LoadAssetAsync<GameObject>(key).WaitForCompletion()` → `Instantiate(UI の根)` → 中の `ILazyGUIElement` を全部 `Init` → 隠して取っておく。
   ゲームが人物の窓を初めて開くときと同じ流れなので、こちらから読ませても副作用は小さい（同じ物がゲームのキャッシュに入る）
@@ -48,4 +48,4 @@
 - **`resources.assets` を丸ごと数えると見分けられない**（ほかの言語の訳文などに「縦」が 18 回・「・」が 1 回ある）。日本語の訳文 `lng_ja`
   （`LL` の MonoBehaviour、1,955,504 バイト）の生のバイト列だけで数えると、どちらも 0 回になる（2026-11-23）。名前は生のバイトの 28 バイト目からの長さ付き文字列
   （m_GameObject 12・m_Enabled 4・m_Script 12 のあと）。訳文の言語は de・en・es・fr・ja・ko・pl・pt-br・ru・tr・zh_cn の 11
-- 数える道具は scratchpad の `charcheck_ja.py`（リポジトリには入れていない）。対照に「縦」を混ぜて 0 になるのを見てから使う
+- 数える道具はリポジトリに入れていない。作るなら、対照に「縦」を混ぜて 0 になるのを見てから使う

@@ -37,7 +37,7 @@
 - 文字の部品 `UITooltipTextWidget`: `label.alignment = data.TextAlignmentOptions` のあとに `TextStyleComponent.ApplyStyle()` を呼ぶので、
   揃え方は初めて当てたときの値（ゲームは全部 Center）に戻る（Craft Todo の調べの「TextStyle.ApplyStyle は揃え方を戻す」）。
   → 左揃え・列は文字の中の書式 `<align=left>` と `<pos=…>` で組む
-- **ツールチップの並べ方**（MainScene の bundle。前のセッションの控え）: 根の `UITooltip` は縦並び（余白 14・間 2・中央寄せ・
+- **ツールチップの並べ方**（MainScene の bundle。前の調べの控え）: 根の `UITooltip` は縦並び（余白 14・間 2・中央寄せ・
   子の幅を制御・子の幅は広げない）＋ ContentSizeFitter（推奨の大きさ）。**部品はそれぞれ自分の推奨幅で、中央に置かれる**。
   文字の部品は TMP の大きさ 16（`TextStyle.ApplyStyle` は書体・材質・色・行間だけを替え、大きさは替えない）・余白 0・折り返し Normal
 - ⚠ **窓には幅の上限がある**（2026-11-23 に bundle で読んだ。前の控えの「幅の上限は無い」は誤り）: 根の `UITooltip` と同じ物に
@@ -45,7 +45,7 @@
   縦並びの余白 14 ずつを引いた**中身 172 を超える文字の部品は、172 に縮められて折り返す**（ゲームの長い説明が折り返すのもこれ）。
   前の控えの道具は `LayoutElement` の欄で見分けていて、子の型の `maxWidth` を出していなかった。
   Stock Finder の 1 行の表は、場所（執筆用の地下室）と宝箱（シンプルな宝箱）の名前が両方長いと 200 を超えて崩れた（水のツールチップ）
-  → 0.2.1 で超えるときだけ場所を見出しの行にまとめ、0.2.2 からは本人の選択でいつもその形（中身の幅は実行中に窓の
+  → 0.2.1 で超えるときだけ場所を見出しの行にまとめ、0.2.2 からは見やすさをそろえるためにいつもその形（中身の幅は実行中に窓の
   `OverrideLayoutElement` と `LayoutGroup.padding` から引き、それでも超えたら警告だけ出す）
 - TMP の推奨幅（`CalculatePreferredValues`）は**空白でない字の右端までしか数えない**（空白・`<pos>` だけの行末は幅にならない）。
   見出しの行の幅を数の右端にそろえるには、色の書式の**内側**に `<alpha=#00>0` を置く（`<alpha>` は `m_htmlColor.a` だけを替え、

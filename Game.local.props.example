@@ -1,0 +1,10 @@
+<Project>
+  <!--
+    手元のゲームの導入先（GraveyardKeeper2.exe のあるフォルダ）。このファイルを同じフォルダ（リポジトリの根）に
+    Game.local.props という名前で写し、パスを自分の環境に合わせる。5 つの mod がどれもこの 1 つを読む。
+    Game.local.props は gitignore 済み（コミットしない）。
+  -->
+  <PropertyGroup>
+    <GameDir>C:\Program Files (x86)\Steam\steamapps\common\Graveyard Keeper 2</GameDir>
+  </PropertyGroup>
+</Project>

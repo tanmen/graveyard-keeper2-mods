@@ -1,0 +1,75 @@
+[h1]Mods Menu[/h1]
+Adds a [b]"Mods"[/b] button to the pause menu (Esc). It opens a window with one wooden tab per mod, where you can change each mod's settings in game. Changes take effect at once and are saved to that mod's config file.
+
+[b]BepInEx plugin.[/b] Subscribe and play. The Steam version of the game already includes BepInEx, so there is nothing else to install.
+
+[h2]Features[/h2]
+[list]
+[*]"Mods" button under "Controls" in the pause menu
+[*]One tab per mod, in the same style as the game's character window tabs (LB / RB on a gamepad)
+[*]Rows made from the game's own settings widgets: on / off, choices, sliders and key bindings (click the field, then press a key)
+[*]Opens on the tab you used last
+[/list]
+
+Mods Menu has no settings of its own. The button appears only when at least one installed mod adds a tab.
+
+[h2]Mods that add a tab[/h2]
+[list]
+[*]Craft Todo
+[*]Stock Finder
+[*]Quick Stash
+[*]Trade Finder
+[/list]
+
+[h2]For mod authors[/h2]
+Your BepInEx plugin can add its own tab in a few lines, as a soft dependency (your mod still works without Mods Menu). Rows are bound to your ConfigEntry values. See "For mod authors" in the README on [url=https://github.com/tanmen/graveyard-keeper2-mods/tree/main/ModsMenu]GitHub[/url].
+
+[h2]Steam Deck / Linux[/h2]
+Set the game's launch options to:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]Notes[/h2]
+[list]
+[*]Text follows the game language: Japanese or English
+[*]Made for Graveyard Keeper 2 v1.012.9 (Steam)
+[*]Source code (MIT): [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]
+
+[hr][/hr]
+
+[h1]Mods Menu（日本語）[/h1]
+ESC の窓（ポーズ）に[b]「Mods」[/b]のボタンを足します。押すと mod ごとの木のタブの窓が開き、ゲームの中で各 mod の設定を変えられます。変えた値はすぐ効き、その mod の設定ファイルに書かれます。
+
+[b]BepInEx プラグインです。[/b]購読するだけで入ります（Steam 版のゲームは BepInEx を同梱しているので、ほかに入れるものはありません）。
+
+[h2]できること[/h2]
+[list]
+[*]ESC の窓の「操作方法」の下に「Mods」
+[*]mod ごとのタブ。ゲームの人物の窓のタブと同じ見た目（ゲームパッドでは LB / RB で送る）
+[*]タブの中はゲームの設定の窓と同じ部品の行: オン / オフ・選ぶ・数（つまみ）・キー（欄を押してから割り当てたいキーを押す）
+[*]最後に開いていたタブから開く
+[/list]
+
+Mods Menu 自身には設定がありません。タブを足す mod が 1 つも入っていなければ、ボタンは出ません。
+
+[h2]タブを足す mod[/h2]
+[list]
+[*]Craft Todo
+[*]Stock Finder
+[*]Quick Stash
+[*]Trade Finder
+[/list]
+
+[h2]mod を作る人へ[/h2]
+自分の BepInEx プラグインに、数行でタブを足せます（任意の依存なので、Mods Menu が無くてもその mod は動きます）。行は ConfigEntry に結び付きます。書き方は [url=https://github.com/tanmen/graveyard-keeper2-mods/tree/main/ModsMenu]GitHub[/url] の README の「For mod authors」。
+
+[h2]Steam Deck / Linux[/h2]
+ゲームの起動オプションに次を入れてください:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]そのほか[/h2]
+[list]
+[*]文言はゲームの言語に合わせて日本語か英語
+[*]Graveyard Keeper 2 v1.012.9（Steam）で作りました
+[*]ソースコード（MIT）: [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]

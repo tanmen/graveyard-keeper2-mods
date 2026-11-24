@@ -1,0 +1,73 @@
+[h1]Stock Finder[/h1]
+Adds to the bottom of item tooltips [b]which chests hold the item and how many[/b], plus the [b]total[/b] of your inventory and all chests. No more opening chests one by one to find something.
+
+[b]BepInEx plugin.[/b] Subscribe and play. The Steam version of the game already includes BepInEx, so there is nothing else to install.
+
+[h2]What it shows[/h2]
+[list]
+[*][b]Total[/b]: your inventory (bags included) + every chest in the world
+[*]Below it, a table: the place as a heading, then one row per chest with the count right-aligned. Your inventory comes first, then places with the most first
+[*]Two chests of the same kind in one place get a row each
+[*]Places with none are left out. If there are none anywhere, only "Total 0"
+[*]When there are many rows (more than 8 by default), the rest are put together as "N more"
+[/list]
+
+The game's own tooltip lines (description, effects, where to craft) stay as they are; the table goes below them.
+
+[h2]Where[/h2]
+Every tooltip the game shows for an item: inventory and chest cells, recipes and the craft queue, ingredient and result cells, the tech tree, orders and vendors, and Craft Todo cells.
+
+[h2]What counts as a chest[/h2]
+The storage that the game opens together in the inventory window (chests, tool shelves, supply storage, garden storage and so on). Items inside workbenches, furnaces and other crafting stations are not counted. Items of different quality (stars) are counted separately.
+
+[h2]Settings[/h2]
+With [b]Mods Menu[/b] installed: Esc → Mods → "Stock Finder" tab (on / off, row limit, layout). Without it, edit [i]BepInEx/config/tanmen.gk2.stockfinder.cfg[/i].
+
+[h2]Steam Deck / Linux[/h2]
+Set the game's launch options to:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]Notes[/h2]
+[list]
+[*]Text follows the game language: Japanese or English. Place and chest names come from the game
+[*]Made for Graveyard Keeper 2 v1.012.9 (Steam)
+[*]Source code (MIT): [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]
+
+[hr][/hr]
+
+[h1]Stock Finder（日本語）[/h1]
+アイテムのツールチップの一番下に、[b]その品がどこの宝箱に何個あるか[/b]と、[b]所持品と宝箱を合わせた合計[/b]を足します。宝箱を 1 つずつ開けて探さなくても、どこへ取りに行けばいいかが分かります。
+
+[b]BepInEx プラグインです。[/b]購読するだけで入ります（Steam 版のゲームは BepInEx を同梱しているので、ほかに入れるものはありません）。
+
+[h2]出るもの[/h2]
+[list]
+[*][b]合計[/b]: 所持品（袋の中も）＋世界にある宝箱の全部
+[*]その下に表: 場所を見出しにして、宝箱ごとに 1 行（数は右揃え）。先頭は所持品、そのあと数の多い場所から
+[*]同じ場所に同じ種類の宝箱が 2 つあれば、1 つずつの行になります
+[*]数が 0 の所は出しません。どこにも無ければ「合計 0」だけ
+[*]行が多いとき（既定は 8 行を超えたとき）は、残りを「ほか N か所」の 1 行にまとめます
+[/list]
+
+ゲームの説明・効果・作成場所などの行はそのまま残し、その下に足します。
+
+[h2]出る場所[/h2]
+ゲームが品の説明を出すツールチップの全部: 所持品・宝箱のセル、制作の窓のレシピとキュー、素材と出来上がりのセル、技術ツリー、注文・商人の窓、Craft Todo のセル。
+
+[h2]数える宝箱[/h2]
+ゲームが所持品の窓でまとめて開く収納（宝箱・道具棚・物資保管庫・庭の保管スペースなど）。作業台・かまどなどの制作機の中の物は数えません。品質（星）の違う品は別の品として数えます。
+
+[h2]設定[/h2]
+[b]Mods Menu[/b] を入れると、ESC → Mods →「Stock Finder」のタブで変えられます（出す・出さない、行の上限、並べ方）。入れなければ [i]BepInEx/config/tanmen.gk2.stockfinder.cfg[/i] を書き換えます。
+
+[h2]Steam Deck / Linux[/h2]
+ゲームの起動オプションに次を入れてください:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]そのほか[/h2]
+[list]
+[*]文言はゲームの言語に合わせて日本語か英語。場所と宝箱の名前はゲームの訳文です
+[*]Graveyard Keeper 2 v1.012.9（Steam）で作りました
+[*]ソースコード（MIT）: [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]

@@ -2,20 +2,19 @@
 
 **ESC の窓（ポーズ）に「Mods」のボタンを足し、押すと mod ごとの木のタブで設定を変えられる窓を開く** BepInEx プラグイン。
 タブは、Mods Menu に登録した mod の分だけ出る（Mods Menu 自身は設定の行を持たない）。
-この repo の 3 つの mod（[Craft Todo](../CraftTodo/README.md)・[Stock Finder](../StockFinder/README.md)・[Quick Stash](../QuickStash/README.md)）が登録する。
+この repo の 4 つの mod（[Craft Todo](../CraftTodo/README.md)・[Stock Finder](../StockFinder/README.md)・[Quick Stash](../QuickStash/README.md)・[Trade Finder](../TradeFinder/README.md)）が登録する。
 ほかの人の mod も、数行で自分のタブを足せる（下の「For mod authors」）。
 
-2026-11-23 に本人の求めで作った（「3 つの mod の統合メニュー化をしたい」「Todo のメニュー名を Mods に変更」「このメニューも Mod 化し、
-公開をする場合に他人が利用できるようにしときたい」）。Craft Todo 0.7.0〜0.7.5 の「制作メニューの設定」の窓をもとにしている。
+2026-11-23 に、mod ごとに散らばっていた設定を 1 つの窓にまとめるために作った。Craft Todo 0.7.0〜0.7.5 の「制作メニューの設定」の窓をもとにしている。
 
 ## 窓
 
 - ESC の窓の「操作方法」の下に「Mods」（日本語でも「Mods」）。押すと ESC の窓を閉じて Mods の窓を開き、閉じると ESC の窓に戻る（ゲームの「設定」と同じ流れ）
-- 見出しの帯に、登録された mod ごとの木のタブ（本人が 4 案から選んだ形）。タブはゲームの人物の窓の見出しの帯をそのまま写す
+- 見出しの帯に、登録された mod ごとの木のタブ（4 案から選んだ形）。タブはゲームの人物の窓の見出しの帯をそのまま写す
   （両端の宝石の飾り・タブの区切り・選んだタブの明るい地・マウスを乗せたときの明かり）。ゲームパッドでは LB / RB（人物の窓と同じ `NextTab` / `PrevTab`）で送る
 - タブの中は、ゲームの設定の窓と同じ部品の行: 節の見出し・オン / オフ・選ぶ（矢印）・数（− ＋ とつまみ）・キー（欄を押して次に押したキーにする）
 - 一番下の段は、選んだタブのボタン（Craft Todo の「メモを全部消す」など）と「OK」（閉じる）
-- タブを替えても窓の大きさは変わらない（いちばん行の多いタブの高さにそろえる）。タブが帯に入りきらなければ窓を広げ（360 まで）、
+- タブを替えても窓の大きさは変わらない（いちばん行の多いタブの高さにそろえる）。タブが帯に入りきらなければ窓を広げ（広げる幅は 360 まで）、
   それでも入らなければ帯の両端に矢印を出して送る
 - 最後に開いていたタブを覚えていて、次に開いたときはそこから出す（cfg の `Window.LastPage`）
 - 変えた値はすぐ効き、各 mod の cfg に書かれる（BepInEx の `ConfigEntry` にそのまま書く）
@@ -46,11 +45,11 @@ dotnet test ModsMenu/ModsMenu.Core.Tests
 dotnet build ModsMenu/ModsMenu -p:DeployToGame=true
 ```
 
-mod 本体のビルドにはゲームの導入先が要る（`Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）。
+mod 本体のビルドにはゲームの導入先が要る（リポジトリの根の `Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）。
 置き場と ⚠ は [docs/modding.md](../docs/modding.md)。調べたゲームの中身は [docs/game-api-notes.md](docs/game-api-notes.md)。
-この repo の 3 つの mod は Mods Menu を参照してビルドする（`ProjectReference`・`Private=false`）ので、どれをビルドしても Mods Menu も一緒にビルドされる。
+この repo の 4 つの mod は Mods Menu を参照してビルドする（`ProjectReference`・`Private=false`）ので、どれをビルドしても Mods Menu も一緒にビルドされる。
 ただし `-p:DeployToGame=true` は参照に渡さない（`GlobalPropertiesToRemove`）ので、mod を配置しても Mods Menu は置かれない。Mods Menu を変えたら、
-`ModsMenu/ModsMenu` を直に配置する（2026-11-23、Trade Finder のセッションの提案。並列に配置したときの写しのぶつかりも無くなる）。
+`ModsMenu/ModsMenu` を直に配置する（並列に配置したときの写しのぶつかりも無くなる）。
 
 ⚠ ほかの mod がこの DLL を参照するので、**アセンブリの版（`AssemblyVersion`）は 1.0.0.0 に留める**。mod の版（`Version`）は modinfo.json と
 BepInPlugin と `FileVersion` に出る。公開の口（`ModsMenuApi`・`ModPage`）を壊すときだけ `ModsMenuApi.ApiVersion` とアセンブリの版を上げる。
@@ -144,7 +143,7 @@ language changes, so a `Func<string>` can return translated text (`ModsMenuApi.L
 | `Choice<T>(ConfigEntry<T>, label, IList<T> values, Func<T, string> names)` | One of the given values |
 | `Key(ConfigEntry<KeyboardShortcut>, label)` | Click, then press a key (Shift / Ctrl / Alt allowed, Esc cancels, left click and gamepad buttons cannot be assigned) |
 | `Button(label, Action onClick, confirmLabel = null)` | Button in the bottom row, left of OK; with `confirmLabel`, needs a second click within 3 s |
-| `SetOrder(int)` | Tab position (smaller first, default 100; the author's mods use 10–30) |
+| `SetOrder(int)` | Tab position (smaller first, default 100; the author's mods use 10–40) |
 
 Other members: `ModsMenuApi.Register(plugin, title)` (fixed or `Func<string>` title), `Unregister(plugin)`, `IsOpen`,
 `Localize(key, fallback)` (text of a game localization key). Registering the same plugin again replaces its tab.

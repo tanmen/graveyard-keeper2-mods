@@ -36,14 +36,14 @@
 
 ゲームのキーボードの割り当て（2026-11-22 の既定 38 件）で `W A S D Q E F R T I M P Tab Space Esc 1〜4 左Shift 矢印` は使用済み。
 Craft Todo が `F8 F9 ホイール` を使う。Q・WASD の近くで空いているのは `Z X C V G`。0.1.0 は手前の角の `Z` にしたが、
-試した本人が `G` の方がよいと言ったので 0.2.0 から `G` にした（2026-11-22）。
+試してみて `G` の方が押しやすかったので 0.2.0 から `G` にした（2026-11-22）。
 設定の `StashKey` で変えられる（例 `Z`・`C`。修飾キー付きなら `G + LeftControl`）。
 ⚠ 設定ファイルが作られたあとに既定を変えても、手元の設定の値は変わらない（BepInEx は設定ファイルの値を優先する）。
 
 ## Mods の窓のタブ（0.3.0〜）
 
 [Mods Menu](../ModsMenu/README.md) を入れると、ESC の窓の「Mods」に「Quick Stash」のタブが出て、ゲームの中でキーと設定を変えられる
-（2026-11-23 に本人の求めで、しまうキーを変えられるようにした）。変えた値はすぐ効き、下の cfg に書かれる。
+（2026-11-23 に、しまうキーをゲームの中で変えられるようにした）。変えた値はすぐ効き、下の cfg に書かれる。
 Mods Menu は任意の依存で、入れなければ cfg だけで変える。
 
 | 節 | 行 |
@@ -87,5 +87,5 @@ dotnet test QuickStash/QuickStash.Core.Tests
 dotnet build QuickStash/QuickStash -p:DeployToGame=true
 ```
 
-mod 本体のビルドにはゲームの導入先が要る（`Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）。
+mod 本体のビルドにはゲームの導入先が要る（リポジトリの根の `Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）。
 置き場と ⚠ は [docs/modding.md](../docs/modding.md)。調べたゲームの中身は [docs/game-api-notes.md](docs/game-api-notes.md)。

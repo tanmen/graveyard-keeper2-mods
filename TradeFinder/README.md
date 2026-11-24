@@ -19,7 +19,7 @@
 - 売ると幸福が入る商人には、最後に幸福のアイコン
 - どの商人も扱わない品には何も足さない
 
-並べ方は 2026-11-23 に本人が図の案から選んだ「1 行ずつ」の形。
+並べ方は 2026-11-23 に図の案から選んだ「1 行ずつ」の形。
 
 ## 設定（Mods の窓・`BepInEx/config/tanmen.gk2.tradefinder.cfg`）
 
@@ -42,7 +42,7 @@ ESC の窓の「Mods」（[Mods Menu](../ModsMenu/README.md)）の「Trade Finde
 
 ## 商人の範囲
 
-- ゲームの商人の定義（`GameBalance.vendorDefs`）の全部。2026-11-23（v1.012.9）で 19 人: ヤヌアリウス・ヘルム・商人頭・ガンター・司祭・ハロルドと、
+- ゲームの商人の定義（`GameBalance.vendorDefs`）のうち、品を扱う商人の全部。2026-11-23（v1.012.9）で 18 人: ヤヌアリウス・ヘルム・商人頭・ガンター・司祭・ハロルドと、
   町の店 12 軒（薬屋・錬金術師・八百屋・仕立て屋・家具職人・パン屋・魚屋・宝石商・建築士・鍛冶場・酒場・醸造所）。
   品を扱わない商人（ジャックの工房。注文だけ）と、テスト用の商人は出さない
 - 町の店の名前は、段階 1 の建物の名前（薬屋 II になっても「薬屋」）。建てたかどうかは、ゲームが店を建てたときに付ける印（注文の窓に出す商人の印）で見る
@@ -74,6 +74,6 @@ dotnet test TradeFinder/TradeFinder.Core.Tests
 dotnet build TradeFinder/TradeFinder -p:DeployToGame=true
 ```
 
-mod 本体のビルドにはゲームの導入先（`Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）と、
+mod 本体のビルドにはゲームの導入先（リポジトリの根の `Game.local.props.example` を写して `Game.local.props` を作るか、`-p:GameDir=...`）と、
 同じリポジトリの `ModsMenu/ModsMenu/ModsMenu.csproj`（参照だけ。配る item には入らず、`DeployToGame` も Mods Menu には渡さない）が要る。
 置き場と ⚠ は [docs/modding.md](../docs/modding.md)。調べたゲームの中身は [docs/game-api-notes.md](docs/game-api-notes.md)。

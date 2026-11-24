@@ -1,0 +1,79 @@
+[h1]Quick Stash[/h1]
+Press [b]G[/b] to put items from your inventory into the chests of the place you are in, but only items those chests [b]already hold[/b]. The item icons fly from you into the chests.
+
+Press the mouse wheel on an inventory cell to [b]lock[/b] that item: locked items stay in your inventory when you press G.
+
+[b]BepInEx plugin.[/b] Subscribe and play. The Steam version of the game already includes BepInEx, so there is nothing else to install.
+
+[h2]What goes where[/h2]
+[list]
+[*]"The place you are in" is the zone shown at the top right. Chests are the storage the game opens together in the inventory window (chests, tool shelves, supply storage, garden storage and so on)
+[*]Only items that one of those chests already holds. Other items stay with you
+[*]Same rules as the game's "move all of the same item" button: only stackable items, nothing from your bags, and different quality (stars) is a different item
+[*]Locked items and items on the hotbar (1–4) stay with you
+[*]If several chests hold the item, the one with the most is filled first. What does not fit stays with you
+[*]A notice at the bottom right says what was stored, for example "Stashed 135 items (6 kinds) in" followed by the place name
+[/list]
+
+G works while you walk around and while the inventory or a chest window is open. It does nothing during dialogue, cutscenes, sleep, building mode, the pause menu, crafting windows or text input.
+
+[h2]Lock[/h2]
+[list]
+[*]Press the mouse wheel on an inventory cell to lock the item; a padlock appears on the cell. Press again to unlock
+[*]Locks are per item kind and are kept for each save slot
+[/list]
+
+[h2]Settings[/h2]
+With [b]Mods Menu[/b] installed: Esc → Mods → "Quick Stash" tab (stash key, lock key, keep hotbar items, notice, animation). Without it, edit [i]BepInEx/config/tanmen.gk2.quickstash.cfg[/i].
+
+[h2]Steam Deck / Linux[/h2]
+Set the game's launch options to:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]Notes[/h2]
+[list]
+[*]Text follows the game language: Japanese or English
+[*]Made for Graveyard Keeper 2 v1.012.9 (Steam)
+[*]Source code (MIT): [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]
+
+[hr][/hr]
+
+[h1]Quick Stash（日本語）[/h1]
+[b]G[/b] を押すと、いまいる場所の宝箱に、[b]すでに入っている品と同じ品[/b]を所持品からまとめてしまいます。しまった品のアイコンが、体から宝箱へ飛んでいきます。
+
+所持品のセルの上でホイールを押し込むと、その品を[b]ロック[/b]できます。ロックした品は G を押しても所持品に残ります。
+
+[b]BepInEx プラグインです。[/b]購読するだけで入ります（Steam 版のゲームは BepInEx を同梱しているので、ほかに入れるものはありません）。
+
+[h2]しまうもの[/h2]
+[list]
+[*]「いまいる場所」は右上の地名の枠と同じ場所。宝箱は、ゲームが所持品の窓でまとめて開く収納（宝箱・道具棚・物資保管庫・庭の保管スペースなど）
+[*]しまうのは、その場所のどれかの宝箱にすでに入っている品だけ。ほかの品は所持品に残ります
+[*]範囲はゲームの宝箱の窓の「同じ品を全部移す」と同じ: 重ねられる品だけ・袋の中の品は動かさない・品質（星）の違う品は別の品
+[*]ロックした品と、ホットバー（1〜4）に置いた品は残します
+[*]同じ品が 2 つ以上の宝箱にあれば、多く入っている宝箱から埋めます。入りきらない分は所持品に残ります
+[*]右下の知らせに「芝地の宝箱へしまった: 6 種 135 個」のように出します
+[/list]
+
+G が効くのは、歩いているときと、所持品の窓・宝箱の窓を開いているときです。会話・演出・眠り・建築・ESC の窓・制作の窓・文字の入力中は何もしません。
+
+[h2]ロック[/h2]
+[list]
+[*]所持品のセルの上でホイールを押し込むとロックし、セルに南京錠が出ます。もう一度押すと外れます
+[*]ロックは品の種類ごとで、セーブ枠ごとに残ります
+[/list]
+
+[h2]設定[/h2]
+[b]Mods Menu[/b] を入れると、ESC → Mods →「Quick Stash」のタブで変えられます（しまうキー・ロックのキー・ホットバーの品を残す・知らせ・飛ぶ演出）。入れなければ [i]BepInEx/config/tanmen.gk2.quickstash.cfg[/i] を書き換えます。
+
+[h2]Steam Deck / Linux[/h2]
+ゲームの起動オプションに次を入れてください:
+[code]WINEDLLOVERRIDES="winhttp=n,b" %command%[/code]
+
+[h2]そのほか[/h2]
+[list]
+[*]文言はゲームの言語に合わせて日本語か英語
+[*]Graveyard Keeper 2 v1.012.9（Steam）で作りました
+[*]ソースコード（MIT）: [url=https://github.com/tanmen/graveyard-keeper2-mods]github.com/tanmen/graveyard-keeper2-mods[/url]
+[/list]

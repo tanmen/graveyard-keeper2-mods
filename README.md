@@ -1,5 +1,20 @@
 # graveyard-keeper2-mods
 
+BepInEx 5 mods for **Graveyard Keeper 2** (Steam). Players install them from the Steam Workshop: subscribe and play, because the Steam
+version of the game already includes BepInEx. Each mod's text follows the game language (Japanese or English).
+
+| Mod | What it does |
+| --- | --- |
+| [Mods Menu](ModsMenu/README.md) | Adds "Mods" to the pause menu: one tab per mod to change its settings in game. Other mods can add a tab ([For mod authors](ModsMenu/README.md#for-mod-authors)) |
+| [Craft Todo](CraftTodo/README.md) | Press the mouse wheel on a recipe to keep it in a to-do list on the left of the screen, with "available / needed" for every ingredient |
+| [Stock Finder](StockFinder/README.md) | Item tooltips show which chests hold the item and how many, plus the total |
+| [Quick Stash](QuickStash/README.md) | Press `G` to put items into the chests of your current place that already hold them. Lock items with the mouse wheel |
+| [Trade Finder](TradeFinder/README.md) | Item tooltips show which vendors sell and buy the item, with place and price |
+
+The READMEs and notes below are in Japanese. Licensed under the [MIT License](LICENSE).
+
+---
+
 Graveyard Keeper 2 の自作 mod を置くリポジトリ。
 
 | mod | 中身 |
@@ -23,6 +38,13 @@ dotnet test TradeFinder/TradeFinder.Core.Tests
 ```
 
 ゲームに依存しない部分（`ModsMenu.Core`・`CraftTodo.Core`・`StockFinder.Core`・`QuickStash.Core`・`TradeFinder.Core`）はどこでもビルドとテストができる。mod 本体のビルドにはゲームの導入先
-（`GraveyardKeeper2_Data/Managed` と同梱の `BepInEx/core`）が要る（手順は各 mod の README）。
+（`GraveyardKeeper2_Data/Managed` と同梱の `BepInEx/core`）が要る。根の `Game.local.props.example` を写して `Game.local.props` を作り（gitignore 済み）、
+`GameDir` をゲームの導入先にする（5 つの mod がどれもこの 1 つを読む。`-p:GameDir=...` でも渡せる）。
 4 つの mod は Mods Menu を参照してビルドする（`ProjectReference`・`Private=false`）ので、どれをビルドしても Mods Menu も一緒にビルドされる
 （配置は別。mod を `-p:DeployToGame=true` で配置しても Mods Menu は置かれないので、Mods Menu は `ModsMenu/ModsMenu` を直に配置する）。
+
+Workshop に上げるフォルダは `scripts/stage-workshop.ps1` で組む（手順は [docs/modding.md](docs/modding.md) の 5）。
+
+## ライセンス
+
+[MIT](LICENSE)。
