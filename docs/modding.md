@@ -102,7 +102,7 @@ Workshop の item も、手元で試すローカルの mod も同じ形:
 | --- | --- |
 | `_description.bbcode` | ページの説明（BBCode。上げるたびに上書きされる）。この repo では英語の下に日本語 |
 | `_changenote.txt` | その回の変更点。無ければ「Initial upload」/「Updated」 |
-| `Thumbnail.png`（`.jpg`） | プレビュー画像。**無いと、フォルダを選んだ時点でゲームが真っ黒の 256x256 を作る**。Steam の上限は 1 MB |
+| `Thumbnail.png`（`.jpg`） | プレビュー画像。**無いと、フォルダを選んだ時点でゲームが真っ黒の 256x256 を作る**。Steam の上限は 1 MB。ゲームは `.png` / `.jpg` / `.jpeg` しか探さず、中身は読まずに Steam へ渡すので、動く GIF にしたいときは中身を GIF のまま `Thumbnail.png` の名前で置く（Quick Stash がそう） |
 
 `_` で始まるファイル・フォルダと、`~` で始まるフォルダも上がらない。
 
